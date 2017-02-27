@@ -1,0 +1,2 @@
+# MVComp
+Interactive Music Visualizer
