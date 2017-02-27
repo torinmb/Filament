@@ -258,7 +258,7 @@
 			var font;
 			var keyFrames, tween;
 
-			loader.load( 'WebAssets/fonts/SharpSansNo1Medium_Regular.json', function ( loadedFont ) {
+			loader.load( 'fonts/SharpSansNo1Medium_Regular.json', function ( loadedFont ) {
 				font = loadedFont;
 			} );	
 			init();
@@ -294,7 +294,7 @@
 		        
 		        sound = new THREE.Audio( listener );
 		        var audioLoader = new THREE.AudioLoader();
-		        var url = '/WebAssets/audio/Mike Gao - Adventura 320kbps.mp3'
+		        var url = 'audio/Mike Gao - Adventura 320kbps.mp3'
 		        audioLoader.load( url , function( buffer ) {
 					sound.setBuffer( buffer );
 					sound.setLoop(true);
@@ -702,7 +702,7 @@
 
 				var time = performance.now();
 				TWEEN.update(time);
-				console.log(camera.position);
+				// console.log(camera.position);
 				keyFrames.update(sound.context.currentTime, params);
 				
 				colorTracker.update();
