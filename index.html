@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Noise Flow</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				color: #ffffff;
+				font-family:Monospace;
+				font-size:13px;
+				text-align:center;
+				font-weight: bold;
+
+				background-color: #000000;
+				margin: 0px;
+				overflow: hidden;
+			}
+
+			#info {
+				position: absolute;
+				top: 0px; width: 100%;
+				padding: 5px;
+			}
+
+			a {
+				color: #ffffff;
+			}
+
+			#oldie a { color:#da0 }
+
+			#progressBar {
+				position: absolute;
+			    width: 80%;
+			    top: 50%;
+			    left: 50%;
+			    z-index: 2;
+			    transform: translate(-50%, -50%);
+			    background-color: grey;
+			    z-index: 10;
+			}
+
+			#bar {
+			    width: 1%;
+			    height: 30px;
+			    background-color: white;
+			}
+		</style>
+	</head>
+	<body>
+
+		<div id="container"></div>
+		<!-- <div id="info"><a href="http://uwc.graphics" target="_blank">CGPP</a> FBM Triangle Shredder</div> -->
+		<div id="progressBar">
+		  <div id="bar"></div>
+		</div>
+		<script src="js/MobileAndTabletCheck.js"></script>
+		<script src="js/three.js"></script>
+		<script src="js/dat.gui.min.js"></script>
+		<script src="js/Detector.js"></script>
+		<script src="js/stats.min.js"></script>
+	    <script src="js/OrbitControls.js"></script>
+		<script src="js/TessellateModifier.js"></script>
+		<script src="js/OBJLoader.js"></script>
+		<script src="js/ColorTracker.js"></script>
+		<script src="js/Tween.js"></script>
+		<script src="js/KeyFrames.js"></script>
+
+		<script id="vertexShader" type="x-shader/x-vertex" src=>
+
+			precision mediump float;
+			precision mediump int;
+
+			uniform mat4 modelViewMatrix; // optional
+			uniform mat4 projectionMatrix; // optional
+			uniform float time;
+			uniform float audio[16];
+			uniform float sensitivity;
+			uniform float amplitude;
+			uniform float scale;
+			uniform float sinScale;
+			uniform float noiseIterations; 
+			uniform float pointSize; 
+			uniform float abMix;
+			uniform float highFrequencyMix;
+			uniform vec2 mouse;
+
+
+			attribute vec3 position;
+			attribute vec3 normal;
+			attribute vec3 positionB;
+			attribute vec3 normalB;
+			attribute vec4 color;
+
+			varying vec3 vPosition;
+			varying vec3 vNormal;
+			varying vec4 vColor;
+
+
+			/// NOISE CODE 
+			//  noise from https://www.shadertoy.com/view/XsX3zB
+		    /* discontinuous pseudorandom uniformly distributed in [-0.5, +0.5]^3 */
+			vec3 random3(vec3 c) {
+				float j = 4096.0*sin(dot(c,vec3(17.0, 59.4, 15.0)));
+				vec3 r;
+				r.z = fract(512.0*j);
+				j *= .125;
+				r.x = fract(512.0*j);
+				j *= .125;
+				r.y = fract(512.0*j);
+				return r-0.5;
+			}
+
+		    /* skew constants for 3d simplex functions */
+		    const float F3 =  0.3333333;
+		    const float G3 =  0.1666667;
+		    /* 3d simplex noise */
+		    float simplex3d(vec3 p) {
+				/* 1. find current tetrahedron T and it's four vertices */
+				/* s, s+i1, s+i2, s+1.0 - absolute skewed (integer) coordinates of T vertices */
+				/* x, x1, x2, x3 - unskewed coordinates of p relative to each of T vertices*/
+				/* calculate s and x */
+				vec3 s = floor(p + dot(p, vec3(F3)));
+				vec3 x = p - s + dot(s, vec3(G3));
+				/* calculate i1 and i2 */
+				vec3 e = step(vec3(0.0), x - x.yzx);
+				vec3 i1 = e*(1.0 - e.zxy);
+				vec3 i2 = 1.0 - e.zxy*(1.0 - e);
+				/* x1, x2, x3 */
+				vec3 x1 = x - i1 + G3;
+				vec3 x2 = x - i2 + 2.0*G3;
+				vec3 x3 = x - 1.0 + 3.0*G3;
+				/* 2. find four surflets and store them in d */
+				vec4 w, d;
+				/* calculate surflet weights */
+				w.x = dot(x, x);
+				w.y = dot(x1, x1);
+				w.z = dot(x2, x2);
+				w.w = dot(x3, x3);
+				/* w fades from 0.6 at the center of the surflet to 0.0 at the margin */
+				w = max(0.6 - w, 0.0);
+				/* calculate surflet components */
+				d.x = dot(random3(s), x);
+				d.y = dot(random3(s + i1), x1);
+				d.z = dot(random3(s + i2), x2);
+				d.w = dot(random3(s + 1.0), x3);
+				/* multiply d by w^4 */
+				w *= w;
+				w *= w;
+				d *= w;
+				/* 3. return the sum of the four surflets */
+				return dot(d, vec4(52.0)) + 0.5;
+		    }
+
+		    float fractalNoise(vec3 p)
+		    {
+		        float f = 0.0;
+		        float a = 0.5;
+		        p = p + vec3(0.0, 0.5, 0.0) * time * 5.02;
+		        p = p * scale;
+		        //mat3 rot = mat3(cos(simplex3d(p).x*-0.020), sin(simplex3d(p).z*0.5), sin(simplex3d(p).z*0.02),
+                    			// -sin(simplex3d(p).x*0.5), cos(simplex3d(p).y*0.50), sin(simplex3d(p).z*0.05),
+                    			// -cos(simplex3d(p).x*0.02), sin(simplex3d(p).y*0.02), sin(simplex3d(p).z*-0.02));
+		        
+		        
+		        for (float i = 0.0; i < 8.0; i++ ) {
+		        	if( i > noiseIterations) {
+		        		break;
+		        	}
+		        	
+
+		            f += a * simplex3d(p) * sqrt(sensitivity) * (pow( 0.003906 * audio[int(i)], sensitivity));
+		            p *= 2.0 ;
+		            a *= highFrequencyMix;
+		        }
+		        return f;
+		    }
+		    
+	  		/// END NOISE CODE
+
+		void main()	{
+
+			vPosition = mix(position, positionB, abMix);
+			vColor = color;
+
+	        vec3 p = mix(position, positionB, abMix);
+	        vec3 noise = vec3(fractalNoise(p.xyz),fractalNoise(p.zyx),fractalNoise(p.yzx))-0.5;
+	        vNormal = mix(normal, normalB, abMix) + amplitude * sin( noise * sinScale );
+	        p = (p) + amplitude * sin( noise * sinScale);
+
+	        //float dist = distance(p, vec3(mouse * 300.0-300.0, 0.0));
+	        // p.x += ;
+	        //p = mix(p, vec3(mouse * 300.0-300.0, 0.0), 1.0/dist);
+	        //p.z += 20000.0 / (1.0+dist);
+
+			gl_Position = projectionMatrix * modelViewMatrix * vec4( p, 1.0 );
+			gl_PointSize = pointSize;
+
+		}
+
+		</script>
+
+		<script id="fragmentShader" type="x-shader/x-fragment">
+
+			precision mediump float;
+			precision mediump int;
+
+			uniform float time;
+			uniform float sensitivity;
+			uniform vec4 lightColor;
+			uniform float colorContour;
+			uniform float opacity;
+			uniform float audio[16];
+
+			varying vec3 vPosition;
+			varying vec3 vNormal;
+			varying vec4 vColor;
+
+			void main()	{
+				vec3 lightDir = normalize(vec3(0.0, 0.0, 1.0));
+				
+				vec4 color = lightColor;//vec4( vColor );
+        		color *= dot(normalize(vNormal),lightDir);
+        		float audioColor = colorContour * (audio[4] + audio[5] + audio[6] * audio[7] * 3.0)  * 0.0001;
+        		if (audioColor > 1.0) {
+
+		    		color = 0.5 * sin(color * audioColor) + 0.5;
+	        	}
+				// color.r += sin( vPosition.x * 10.0 + time ) * 0.5;
+				color.a = opacity;
+				gl_FragColor = vec4( color );
+				
+			}
+
+		</script>
+
+		
+
+		<script>
+
+			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+
+			var container, stats;
+
+			var camera, scene, renderer, controls;
+			var listener, audioLoader, audioArray, bufferLength, analyser, smoothVolume;
+			var audioCtx, source, stream, useMicrophone, micAnalyser, micData;
+			var pointLight, skyBox;
+
+			var gui, params, detail, pointSize, sizeCallBack, drawStyle, GeometryA, GeometryB, aSelectedGeometry, bSelectedGeometry;
+			var sound, playAudio, volume, geometry, material, mouse, noiseShape, noiseGeometry;
+			var firstExecutionFlag = true;
+
+			var colorTracker;
+			var worker;
+
+			var loader = new THREE.FontLoader();
+			var font;
+			var keyFrames, tween;
+
+			loader.load( 'WebAssets/fonts/SharpSansNo1Medium_Regular.json', function ( loadedFont ) {
+				font = loadedFont;
+			} );	
+			init();
+			console.log(scene.children[0]);
+			params.detail = 175;
+			updateGeomAndDrawStyle("Line");
+			gui.closed = true;
+			animate();		
+
+			function init() {
+
+				container = document.getElementById( 'container' );
+
+				camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 5, 50000 );
+				camera.position.set(0, -770, 210);
+				// camera.position.set(250,-557, 253);
+
+				scene = new THREE.Scene();
+
+				colorTracker = new ColorTracker();
+
+				document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+				mouse = new THREE.Vector2();
+
+				initGui();
+
+				worker = new Worker('js/GeometryWorker.js');
+				worker.addEventListener('message', workerCallBack);
+				
+		        //audio
+		        var listener = new THREE.AudioListener();
+		        camera.add( listener );
+		        
+		        sound = new THREE.Audio( listener );
+		        var audioLoader = new THREE.AudioLoader();
+		        var url = '/WebAssets/audio/Mike Gao - Adventura 320kbps.mp3'
+		        audioLoader.load( url , function( buffer ) {
+					sound.setBuffer( buffer );
+					sound.setLoop(true);
+					sound.setVolume(0.5);
+					sound.play();
+					sound.autoplay = true;
+					params.playAudio = true;
+					var elem = document.getElementById("progressBar"); 
+					elem.style.display = 'none'; 
+		        },
+				function ( xhr ) {
+					var percent = xhr.loaded / xhr.total * 100;
+					console.log( percent + '% loaded' );
+				    var elem = document.getElementById("bar"); 
+				    elem.style.width = percent + '%'; 
+				},
+				function ( xhr ) {
+					console.log( 'An error happened' );
+				});
+    			navigator.getUserMedia = (navigator.getUserMedia ||
+              			  navigator.webkitGetUserMedia ||
+              			  navigator.mozGetUserMedia ||
+              			  navigator.msGetUserMedia);
+				audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+				var source, stream;
+				micAnalyser = audioCtx.createAnalyser();
+				// micAnalyser.minDecibels = -90;
+				// micAnalyser.maxDecibels = -10;
+				// micAnalyser.smoothingTimeConstant = 0.85;
+				if (navigator.getUserMedia) {
+				   console.log('getUserMedia supported.');
+				   navigator.getUserMedia (
+				      {audio: true},
+				      function(stream) {
+				         source = audioCtx.createMediaStreamSource(stream);
+				         source.connect(micAnalyser);
+				      },
+				      // Error callback
+				      function(err) {
+				         console.log('The following gUM error occured: ' + err);
+				      });
+				} else {
+				   console.log('getUserMedia not supported on your browser!');
+				}
+
+		        bufferLength = 32;
+		        micAnalyser.bufferLength = bufferLength;
+		        micData = new Uint8Array(bufferLength);
+		        analyser = new THREE.AudioAnalyser( sound, bufferLength );
+		        audioArray = new Array(16);// Uint8Array(bufferLength); 
+		        for(var i = 0; i < audioArray.length; i++) {
+					audioArray[i] = 0.0;
+				}
+		        smoothVolume = 0.0;
+
+				var manager = new THREE.LoadingManager();
+				manager.onProgress = function ( item, loaded, total ) {
+					console.log( item, loaded, total );
+				};
+
+		        var geometry = new THREE.PlaneBufferGeometry(params.size, params.size, params.detail*2.0, params.detail*2.0);
+				noiseGeometry = new THREE.BufferGeometry();
+		 		noiseGeometry.addAttribute( "position", new THREE.BufferAttribute( geometry.getAttribute( "position" ).array, 3));
+		 		noiseGeometry.addAttribute( "normal", new THREE.BufferAttribute( geometry.getAttribute("normal").array, 3));
+		 		noiseGeometry.addAttribute( "positionB", new THREE.BufferAttribute( geometry.getAttribute( "position" ).array, 3));
+		 		noiseGeometry.addAttribute( "normalB", new THREE.BufferAttribute( geometry.getAttribute("normal").array, 3));
+		 		noiseGeometry.computeBoundingSphere();
+		 		noiseGeometry.needsUpdate = true;
+
+				material = new THREE.RawShaderMaterial( {
+
+					uniforms: {
+						time: { value: 1.0 },
+						audio : { type: "fv1",  value: new Array(bufferLength) },
+						sensitivity : { value: params.sensitivity },
+						amplitude : {value: params.amplitude },
+						noiseIterations : { value: params.noiseIterations },
+						lightColor : { value: new THREE.Vector4(1.0, 1.0, 1.0, 1.0) },
+						sinScale : { value: params.sinScale },
+						scale : { value: params.scale },
+						abMix : { value : params.abMix },
+						colorContour : { value: params.colorContour },
+						opacity : { value: params.opacity },
+						pointSize : { value: params.pointSize },
+						highFrequencyMix : {value : params.highFrequencyMix },
+						mouse : {value : mouse }
+
+					},
+					vertexShader: document.getElementById( 'vertexShader' ).textContent,
+					fragmentShader: document.getElementById( 'fragmentShader' ).textContent,
+					side: THREE.DoubleSide,
+					transparent: true
+				} );
+
+				//Initializes the noiseShape with aSelectedGeometry and bSelectedGeometry.
+				aSelectedGeometry = "Plane";
+				bSelectedGeometry = "Sphere";
+				updateGeomAndDrawStyle("Line");
+				params.style = "Line";
+				params.GeometryA = aSelectedGeometry;
+				params.GeometryB = bSelectedGeometry;
+
+				keyFrames = new KeyFrames();
+				initKeyFrames(keyFrames);
+
+				pointLight = new THREE.PointLight(0xFFFFFF, 1.0);
+				scene.add(pointLight);
+        
+				var skyBoxMat = new THREE.MeshStandardMaterial( { roughness:0.4, color: 0xFFFFFF, emissive: 0x000000, emissiveIntensity:0, side: THREE.DoubleSide } );
+				var skyBoxGeom = new THREE.SphereGeometry(5500, 32, 32);
+				skyBox = new THREE.Mesh(skyBoxGeom, skyBoxMat);
+				scene.add(skyBox);
+
+				renderer = new THREE.WebGLRenderer({ antialias : true });
+				renderer.setClearColor( 0x101010 );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				container.appendChild( renderer.domElement );
+
+				controls = new THREE.OrbitControls( camera, renderer.domElement );
+				controls.enableDamping = true;
+				controls.dampingFactor = 0.9;  
+				controls.zoomSpeed = 0.3;
+				controls.rotateSpeed = 0.3;	
+				controls.maxDistance = 5000;
+        
+				stats = new Stats();
+				container.appendChild( stats.dom );
+
+				window.addEventListener( 'resize', onWindowResize, false );
+
+			}
+
+			function initGui() {
+				params = {
+					sensitivity: 4.0,
+					amplitude : 250,
+					pointLightIntensity : 0.01,
+					time : -0.9,
+					noiseIterations : 6.0,
+					highFrequencyMix : 0.1,
+					audioSmoothing: 0.9,
+					size : 1,
+					detail : 200,
+					pointSize : 1,
+					playAudio : false,
+					useMicrophone : false,
+					scale : 0.2,
+					abMix : 0.0,
+					sinScale : 0.6,
+					volume : 0.5,
+					colorContour : 1.3, 
+					opacity : 0.5,
+					saturation : 0.8,
+					style : ['Points', 'Line', 'Mesh'],
+					text : "CGPP",
+					GeometryA : ['Plane', 'Sphere', 'Solid Sphere', 'Text'],
+					GeometryB : ['Plane', 'Sphere', 'Solid Sphere', 'Text']
+				};
+				gui = new dat.GUI();
+				var f1 = gui.addFolder('Lights');
+				f1.add( params, "pointLightIntensity", 0.0, 0.5 ).listen();
+				f1.add( params, "colorContour", 0.1, 20.0 ).listen();
+				f1.add( params, "opacity", 0.0, 1.0 ).listen();
+				f1.add( params, "saturation", 0.0, 1.0 ).listen();
+				var f2 = gui.addFolder('Noise');
+				f2.add( params, "time", -2.0, 4.0 ).listen();
+				var f3 = gui.addFolder('Geometry');
+				if( window.mobileAndTabletCheck() ) {
+					params['detail'] = 20;
+					params['noiseIterations'] = 3.0;
+					params['sensitivity'] = 1.0;
+					f2.add( params, "sensitivity", 0.2, 10.0 );
+					f2.add( params, "amplitude", 1.0, 500.0 );
+					f2.add( params, "noiseIterations", 1.0, 6.0 );
+					detail = f3.add( params, "detail", 1, 1000 );
+				} else {
+					f2.add( params, "sensitivity", 0.2, 10.0 );
+					f2.add( params, "amplitude", 1.0, 500.0 );
+					f2.add( params, "noiseIterations", 1.0, 8.0 );
+					detail = f3.add( params, "detail", 1, 1000 );
+				}
+				f2.add( params, "sinScale", 0.0001, 0.8 );
+				f2.add( params, "scale", 0.01, 0.6 );
+				f2.add( params, "abMix", 0.0, 1.0 ).listen();
+				f2.add( params, "highFrequencyMix", 0.01, 1.0 ).listen();
+				sizeCallBack = f3.add( params, "size", 1, 30000 ).listen();
+				
+				pointSize = f3.add( params, "pointSize", 1, 20 );
+				drawStyle = f3.add( params, "style", params.style).listen();
+				GeometryA = f3.add( params, "GeometryA", params.GeometryA).listen();
+				GeometryB = f3.add( params, "GeometryB", params.GeometryB).listen();
+				f3.add( params, "text", params.text );
+				var f4 = gui.addFolder('Audio');
+				f4.add( params, "audioSmoothing", 0.0, 0.9).listen();
+				volume = f4.add( params, "volume", 0.0, 0.5).listen();
+				playAudio = f4.add( params, "playAudio").listen();
+				useMicrophone = f4.add( params, "useMicrophone").listen();
+				f2.open();
+				f3.open();
+				gui.remember(params);
+			}
+
+			function initKeyFrames(keyFrames) {
+
+				var keyFrame = new KeyFrame({
+					size: 8000
+				}, function() {
+					sizeCallBack.setValue(params.size);
+				}, TWEEN.Easing.Quadratic.Out, 8000, 1);
+				keyFrames.push(keyFrame);
+
+				keyFrame = new KeyFrame({
+					abMix: 1.0,
+					highFrequencyMix : 0.99
+				}, function() {
+					// alert('updating');
+				}, TWEEN.Easing.Quadratic.Out, 3000, 17);
+				keyFrames.push(keyFrame);
+
+				// keyFrame = new KeyFrame({
+				// 	size: 5000,
+				// }, function() {
+				// 	sizeCallBack.setValue(params.size);
+				// }, TWEEN.Easing.Quadratic.Out, 3000, 20);
+				// keyFrames.push(keyFrame);
+
+				keyFrame = new KeyFrame({
+					aSelectedGeometry: "Solid Sphere",
+					pointSize : 20
+				}, function() {
+					pointSize.setValue(params.pointSize);
+					GeometryA.setValue("Solid Sphere");
+				}, TWEEN.Easing.Quadratic.Out, 1, 19);
+				keyFrames.push(keyFrame);
+
+				keyFrame = new KeyFrame({
+					style: "Mesh"
+				}, function() {
+					updateGeomAndDrawStyle("Mesh");
+				}, TWEEN.Easing.Quadratic.Out, 1, 22);
+				keyFrames.push(keyFrame);
+
+				keyFrame = new KeyFrame({abMix: 0.0}, function() {}, TWEEN.Easing.Quadratic.Out, 3000, 26);
+				keyFrames.push(keyFrame);
+
+
+				console.log(keyFrames);
+
+			}
+
+			function workerCallBack(msg) {
+				updateGeometry(msg.data[0], msg.data[1]);
+			}
+
+			function updateGeometry (geomToUpdate, geom) {
+
+				//conver the geom into buffer because functions are stripped when pased through the web worker
+				var geo = new THREE.BufferGeometry();
+				geo.addAttribute('position', geom.attributes.position);
+				geo.addAttribute('normal', geom.attributes.normal);
+				geo.computeBoundingSphere();
+
+				var count;
+				if (geomToUpdate === "A") {
+					count = noiseGeometry.getAttribute( "position" ).count * 3;
+					noiseGeometry.removeAttribute( "position" );
+					noiseGeometry.removeAttribute( "normal" );
+				} else {
+					count = noiseGeometry.getAttribute( "positionB" ).count * 3;
+					noiseGeometry.removeAttribute( "positionB" );
+					noiseGeometry.removeAttribute( "normalB" );
+				}
+
+				var newP = new Float32Array( count );
+				var pArr = geo.getAttribute("position").array;
+				var newCount = Math.min( geo.getAttribute("position").count * 3, count);
+				for (var i = 0; i < count; i++ ) {
+					newP[i] = pArr[i];
+				}
+				var newN = new Float32Array( count );
+				var nArr = geo.getAttribute("normal").array;
+				newCount = Math.min( geo.getAttribute("normal").count * 3, count);
+				for (var i = 0; i < count; i++ ) {
+					newN[i] = nArr[i];
+				}
+
+				if (geomToUpdate === "A") {
+					noiseGeometry.addAttribute( "position", new THREE.BufferAttribute( newP, 3));
+			 		noiseGeometry.addAttribute( "normal", new THREE.BufferAttribute( newN, 3));
+				} else {
+					noiseGeometry.addAttribute( "positionB", new THREE.BufferAttribute( newP, 3));
+			 		noiseGeometry.addAttribute( "normalB", new THREE.BufferAttribute( newN, 3));	
+				}
+ 				
+				noiseShape.geometry.needsUpdate = true;
+			}
+
+
+			function asyncUpdateGeometry(geomToUpdate, selectedGeometry) {
+				if ( selectedGeometry == "Plane" ) {
+					worker.postMessage([geomToUpdate, selectedGeometry, params.size, params.detail]);
+				} else if( selectedGeometry == "Sphere" ) {
+					worker.postMessage([geomToUpdate, selectedGeometry, params.size, params.detail]);
+				} else if( selectedGeometry == "Solid Sphere" ) {
+					worker.postMessage([geomToUpdate, selectedGeometry, params.size, params.detail, params.pointSize]);
+				} else if ( selectedGeometry == "Text" ) {
+					worker.postMessage([geomToUpdate, selectedGeometry, params.size, params.detail, font, params.text]);
+				}  
+			}
+
+			GeometryA.onChange( function(value) {
+				if (value !== aSelectedGeometry) {
+					asyncUpdateGeometry("A", value);
+				}
+				aSelectedGeometry = value;
+			});
+
+			GeometryB.onChange( function (value) {
+				if (value !== bSelectedGeometry) {
+					asyncUpdateGeometry("B", value);
+				}
+				bSelectedGeometry = value;
+			});
+
+			function updateGeomAndDrawStyle(drawStyle){
+				asyncUpdateGeometry("A", aSelectedGeometry);
+				asyncUpdateGeometry("B", bSelectedGeometry);
+				scene.remove(noiseShape);
+				if(drawStyle == "Points") {
+					noiseShape = new THREE.Points( noiseGeometry, material );
+				} else if(drawStyle == "Line") {
+					noiseShape = new THREE.LineSegments( noiseGeometry, material );
+				} else {
+					noiseShape = new THREE.Mesh( noiseGeometry, material );
+				}
+				scene.add(noiseShape);
+			}
+
+			drawStyle.onChange(function(value) {
+				updateGeomAndDrawStyle(value);
+			});
+
+			//Dat.gui callback methods
+			detail.onChange(function(value) {
+				asyncUpdateGeometry("A", aSelectedGeometry);
+				asyncUpdateGeometry("B", bSelectedGeometry);
+			});
+
+			sizeCallBack.onChange(function(value) {
+				asyncUpdateGeometry("A", aSelectedGeometry);
+				asyncUpdateGeometry("B", bSelectedGeometry);
+			});
+
+			pointSize.onChange(function(value) {
+				asyncUpdateGeometry("A", aSelectedGeometry);
+				asyncUpdateGeometry("B", bSelectedGeometry);
+			});
+			
+			volume.onChange(function(value) {
+				sound.setVolume(value);
+			});
+
+			playAudio.onChange(function(shouldPlay) {
+				if (shouldPlay) {
+					sound.play();
+					analyser = new THREE.AudioAnalyser( sound, bufferLength );
+				} else {
+					sound.pause();
+				}
+				
+			});
+
+			useMicrophone.onChange(function(shouldUseMic) {
+				if(shouldUseMic) {
+					sound.pause();
+					params.playAudio = false;
+				} else {
+
+				}
+			});
+
+			function onDocumentMouseMove(event) {
+				mouse.x = ( event.clientX / window.innerWidth );
+				mouse.y = ( event.clientY / window.innerHeight );
+			}			
+
+			function onWindowResize( event ) {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+				render();
+				stats.update();
+
+			}
+
+			function render() {
+
+				var time = performance.now();
+				TWEEN.update(time);
+				console.log(camera.position);
+				keyFrames.update(sound.context.currentTime, params);
+				
+				colorTracker.update();
+				var object = noiseShape;
+				// object.rotation.z = -Math.PI /2;
+				// object.rotation.y = -Math.PI /4;
+				controls.update();
+				var smoothA = Math.sqrt(params.audioSmoothing);
+				var smoothB = 1 - smoothA;
+		        smoothVolume = smoothB * analyser.getAverageFrequency() * 0.01 + smoothA * smoothVolume;
+		        pointLight.intensity = smoothVolume * params.pointLightIntensity;
+
+
+		        var freshAudio, color;
+		        var averageFrequency;
+		        if(params.useMicrophone) {
+		        	micAnalyser.getByteFrequencyData(micData);
+		        	freshAudio = new Array(micData.length);
+		        	var sum = 0;
+		        	for(var i = 0; i < freshAudio.length; i++) {
+		        		freshAudio[i] = micData[i];
+		        		sum += freshAudio[i];
+		        	}
+		        	averageFrequency = sum / freshAudio.length / 2.0;
+		        	console.log(averageFrequency);
+		        	color = colorTracker.getColor(averageFrequency, 100);
+		        } else {
+		        	freshAudio = analyser.getFrequencyData();
+		        	color = colorTracker.getColor(analyser.getAverageFrequency(), 100);
+		        }
+
+		        var index = 0;
+				for(var i = 0; i < freshAudio.length; i+=2) {
+					var averagedAudio = (freshAudio[i] + 
+										freshAudio[i + 1]) / 2.0; 
+										//freshAudio[i + 2] +
+										//freshAudio[i + 3]) / 4.0;
+					//audio smoothing
+					audioArray[index] = smoothA * averagedAudio + smoothB * freshAudio[index]; 
+					index +=1;
+				}
+
+				var hsl = color.getHSL();
+				color.setHSL(hsl.h, params.saturation, hsl.l);
+
+				camera.lookAt(object.position);
+				// object.rotation.z = -Math.PI / 2;
+				var objUniforms = object.material.uniforms;
+				objUniforms.audio.value = audioArray;
+				objUniforms.time.value += (time * 0.000005) * 0.7 + smoothVolume * smoothVolume * params.time;
+				objUniforms.sensitivity.value = params.sensitivity;
+				objUniforms.amplitude.value = params.amplitude;
+				objUniforms.noiseIterations.value = params.noiseIterations;
+				objUniforms.scale.value = 0.01 * params.scale;
+				objUniforms.abMix.value = params.abMix;
+				objUniforms.sinScale.value = params.sinScale;
+				objUniforms.colorContour.value = params.colorContour;
+				objUniforms.opacity.value = params.opacity;
+				objUniforms.pointSize.value = params.pointSize;
+				objUniforms.highFrequencyMix.value = params.highFrequencyMix;
+				objUniforms.mouse.value = mouse;
+				objUniforms.lightColor.value = new THREE.Vector4(color.r, color.g, color.b, color.a);
+
+				renderer.render( scene, camera );
+
+			}
+
+		</script>
+
+	</body>
+</html>
