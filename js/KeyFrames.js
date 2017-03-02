@@ -38,23 +38,28 @@ function KeyFrame(endParams, updateFns, easing, duration, startTime) {
 KeyFrame.prototype.start = function(completion, params) {
 	//initialize Tween with current params so it incriments the UI from
 	// alert("Starting");
-	this.tween = new TWEEN.Tween(params)
-	.easing(this.easing);
-	var tweenParams = JSON.parse(JSON.stringify(params));
-	for (var param in this.endParams) {
-	  tweenParams[param] = this.endParams[param];
-	}
-	var updateFns = this.updateFns;
-	this.tween.onUpdate(function() {
-		updateFns();
-		// for (var update in this.updateFns) {
-			// update.setValue(this.updateFns[update]);
-		// }
-	})
-	.to(tweenParams, this.duration)
-	.onComplete(function() {
+	if(this.duration != null) {
+		this.tween = new TWEEN.Tween(params)
+		.easing(this.easing);
+		var tweenParams = JSON.parse(JSON.stringify(params));
+		for (var param in this.endParams) {
+		  tweenParams[param] = this.endParams[param];
+		}
+		var updateFns = this.updateFns;
+		this.tween.onUpdate(function() {
+			updateFns();
+			// for (var update in this.updateFns) {
+				// update.setValue(this.updateFns[update]);
+			// }
+		})
+		.to(tweenParams, this.duration)
+		.onComplete(function() {
+			completion();
+		})
+		.start();
+	} else {
+		this.updateFns();
 		completion();
-	})
-	.start();
+	}
 }
 

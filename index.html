@@ -194,7 +194,7 @@
 	        //p.z += 20000.0 / (1.0+dist);
 
 			gl_Position = projectionMatrix * modelViewMatrix * vec4( p, 1.0 );
-			gl_PointSize = pointSize;
+			gl_PointSize = pointSize * (audio[2] * audio[4] + audio[5] + audio[6] * audio[7] * 3.0)  * 0.0001;
 
 		}
 
@@ -222,10 +222,10 @@
 				vec4 color = lightColor;//vec4( vColor );
         		color *= dot(normalize(vNormal),lightDir);
         		float audioColor = colorContour * (audio[4] + audio[5] + audio[6] * audio[7] * 3.0)  * 0.0001;
-        		if (audioColor > 1.0) {
+        		// if (audioColor > 1.0) {
 
-		    		color = 0.5 * sin(color * audioColor) + 0.5;
-	        	}
+		    	// color = 0.5 * sin(color * audioColor) + 0.5;
+	        	// }
 				// color.r += sin( vPosition.x * 10.0 + time ) * 0.5;
 				color.a = opacity;
 				gl_FragColor = vec4( color );
@@ -295,6 +295,7 @@
 		        sound = new THREE.Audio( listener );
 		        var audioLoader = new THREE.AudioLoader();
 		        var url = 'audio/Mike Gao - Adventura 320kbps.mp3'
+		        // var url = 'audio/JaiPaul.mp3'
 		        audioLoader.load( url , function( buffer ) {
 					sound.setBuffer( buffer );
 					sound.setLoop(true);
@@ -433,7 +434,7 @@
 					sensitivity: 4.0,
 					amplitude : 250,
 					pointLightIntensity : 0.01,
-					time : -0.9,
+					time : -1.2,
 					noiseIterations : 6.0,
 					highFrequencyMix : 0.1,
 					audioSmoothing: 0.9,
@@ -442,13 +443,13 @@
 					pointSize : 1,
 					playAudio : false,
 					useMicrophone : false,
-					scale : 0.2,
+					scale : 0.15,
 					abMix : 0.0,
-					sinScale : 0.6,
+					sinScale : 0.9,
 					volume : 0.5,
 					colorContour : 1.3, 
-					opacity : 0.5,
-					saturation : 0.8,
+					opacity : 0.8,
+					saturation : 0.9,
 					style : ['Points', 'Line', 'Mesh'],
 					text : "CGPP",
 					GeometryA : ['Plane', 'Sphere', 'Solid Sphere', 'Text'],
@@ -512,34 +513,34 @@
 					highFrequencyMix : 0.99
 				}, function() {
 					// alert('updating');
-				}, TWEEN.Easing.Quadratic.Out, 3000, 17);
+				}, TWEEN.Easing.Quadratic.Out, 3000, 16.2);
 				keyFrames.push(keyFrame);
 
-				// keyFrame = new KeyFrame({
-				// 	size: 5000,
-				// }, function() {
-				// 	sizeCallBack.setValue(params.size);
-				// }, TWEEN.Easing.Quadratic.Out, 3000, 20);
-				// keyFrames.push(keyFrame);
-
-				keyFrame = new KeyFrame({
-					aSelectedGeometry: "Solid Sphere",
-					pointSize : 20
-				}, function() {
-					pointSize.setValue(params.pointSize);
-					GeometryA.setValue("Solid Sphere");
-				}, TWEEN.Easing.Quadratic.Out, 1, 19);
-				keyFrames.push(keyFrame);
+				
 
 				keyFrame = new KeyFrame({
 					style: "Mesh"
 				}, function() {
 					updateGeomAndDrawStyle("Mesh");
-				}, TWEEN.Easing.Quadratic.Out, 1, 22);
+				}, null, null, 22);
 				keyFrames.push(keyFrame);
 
-				keyFrame = new KeyFrame({abMix: 0.0}, function() {}, TWEEN.Easing.Quadratic.Out, 3000, 26);
+				keyFrame = new KeyFrame({}, function() {
+					asyncUpdateGeometry("A", "Solid Sphere");
+					aSelectedGeometry = "Solid Sphere";
+				}, null, null, 24);
 				keyFrames.push(keyFrame);
+
+				keyFrame = new KeyFrame({abMix: 0.0}, function() {}, TWEEN.Easing.Quadratic.Out, 10000, 30);
+				keyFrames.push(keyFrame);
+
+				// keyFrame = new KeyFrame({
+				// 	size: 1000,
+				// }, function() {
+				// 	sizeCallBack.setValue(params.size);
+				// }, TWEEN.Easing.Quadratic.Out, 3000, 35);
+				// keyFrames.push(keyFrame);
+
 
 
 				console.log(keyFrames);

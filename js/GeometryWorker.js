@@ -15,7 +15,7 @@ onmessage = function(e) {
 		geometry = new THREE.SphereBufferGeometry(size / 2.0, detail, detail).toNonIndexed();
 	} else if( selectedGeometry == "Solid Sphere" ) {
 		// var triangleSize = e.data[4];
-		var triangleSize = 20.0;
+		var triangleSize = 30.0;
 		geometry = generateSolidSphereGeometry(size, detail, triangleSize).toNonIndexed();
 	} else if ( selectedGeometry == "Text" ) {
 		var font = e.data[4];
