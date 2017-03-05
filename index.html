@@ -602,18 +602,13 @@
 				keyFrame = new KeyFrame({}, function() {}, null, null, 125.0, function() {gui.closed = false;});
 				keyFrames.push(keyFrame);
 
-				// keyFrame = new KeyFrame({opacity: 1.0}, function() {}, TWEEN.Easing.Quadratic.InOut, 4000, 126.0);
-				// keyFrames.push(keyFrame);
-
-				// keyFrame = new KeyFrame({sinScale: 0.8}, function() {}, TWEEN.Easing.Quadratic.InOut, 4000, 128.0);
-				// keyFrames.push(keyFrame);
-
 			}
 
 			function workerCallBack(msg) {
 				updateGeometry(msg.data[0], msg.data[1]);
 			}
 
+			//TODO: Refactor into geometry morphing class
 			function updateGeometry (geomToUpdate, geom) {
 
 				//conver the geom into buffer because functions are stripped when pased through the web worker
@@ -696,12 +691,9 @@
 						noiseGeometry.addAttribute( "position", new THREE.BufferAttribute( buffPA, 3));
 						noiseGeometry.addAttribute( "normal", new THREE.BufferAttribute( buffNA, 3));
 					}
-
 				}
- 				
 				noiseShape.geometry.needsUpdate = true;
 			}
-
 
 			function asyncUpdateGeometry(geomToUpdate, selectedGeometry) {
 				if ( selectedGeometry == "Plane" ) {
@@ -795,7 +787,6 @@
 			function onDocumentMouseClick(event) {
 				console.log(sound.currentTime);
 				console.log(camera.position);
-				// console.log(params.camera);
 			}			
 
 			function onWindowResize( event ) {
@@ -818,23 +809,19 @@
 
 				var time = performance.now();
 				TWEEN.update(time);
-				// console.log(camera.position);
+				
 				if (sound.startTimer != -1) {
 					sound.currentTime = new Date().getTime() / 1000 - sound.startTimer;
 				}
 				keyFrames.update(sound.currentTime, params);
 
-				
 				colorTracker.update();
-				var object = noiseShape;
-				// object.rotation.z = -Math.PI /2;
-				// object.rotation.y = -Math.PI /4;
+
 				controls.update();
 				var smoothA = Math.sqrt(params.audioSmoothing);
 				var smoothB = 1 - smoothA;
 		        smoothVolume = smoothB * analyser.getAverageFrequency() * 0.01 + smoothA * smoothVolume;
 		        pointLight.intensity = smoothVolume * params.pointLightIntensity;
-
 
 		        var freshAudio, color;
 		        var averageFrequency;
@@ -870,10 +857,8 @@
 				if(updatingCamera) {
 					camera.position.set(params.camX, params.camY, params.camZ);
 				}
-				//camera.position.set(parseInt(params.camX), parseInt(params.camY), parseInt(params.camZ));
-				
-				// object.rotation.z = -Math.PI / 2;
-				var objUniforms = object.material.uniforms;
+
+				var objUniforms = noiseShape.material.uniforms;
 				objUniforms.audio.value = audioArray;
 				objUniforms.time.value += (time * 0.000005) * 0.7 + smoothVolume * smoothVolume * params.time;
 				objUniforms.sensitivity.value = params.sensitivity;
@@ -889,7 +874,6 @@
 				objUniforms.mouse.value = mouse;
 				objUniforms.lightColor.value = new THREE.Vector4(color.r, color.g, color.b, color.a);
 
-				// console.log(sound.currentTime);
 				renderer.render( scene, camera );
 
 			}
