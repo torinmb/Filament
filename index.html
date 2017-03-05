@@ -188,7 +188,6 @@
 			uniform float opacity;
 			uniform float audio[16];
 
-			varying vec3 vPosition;
 			varying vec3 vNormal;
 			varying vec4 vColor;
 
@@ -237,6 +236,8 @@
 
 			var playButton = document.getElementById("playButton");
 			playButton.addEventListener( 'click', playPressed, false );
+			initGui();
+			gui.closed = true;
 
 			function playPressed(event) {
 				document.getElementById("progressBar").style.visibility = "visible";
@@ -244,7 +245,7 @@
 				loader.load( 'fonts/SharpSansNo1Medium_Regular.json', function ( loadedFont ) {
 					font = loadedFont;
 					init();
-					gui.closed = true;
+					
 					animate();
 				} );				
 			}
@@ -263,7 +264,7 @@
 				document.addEventListener( 'click', onDocumentMouseClick, false );
 				mouse = new THREE.Vector2();
 
-				initGui();
+				// initGui();
 
 				worker = new Worker('js/GeometryWorker.js');
 				worker.addEventListener('message', workerCallBack);
@@ -380,6 +381,7 @@
 				params.GeometryA = aSelectedGeometry;
 				params.GeometryB = bSelectedGeometry;
 				updateGeomAndDrawStyle("Mesh");
+
 				keyFrames = new KeyFrames();
 				initKeyFrames(keyFrames);
 
@@ -708,6 +710,7 @@
 			}
 
 			GeometryA.onChange( function(value) {
+				console.log(value);
 				if (value !== aSelectedGeometry) {
 					asyncUpdateGeometry("A", value);
 				}

@@ -157,5 +157,5 @@ function generateText(size, detail, font, text) {
 	t.center();
 
 
-	return t.toNonIndexed();
+	return t;
 }
