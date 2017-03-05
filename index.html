@@ -313,6 +313,7 @@
 					sound.setVolume(0.5);
 					sound.play();
 					sound.autoplay = true;
+					sound.context.currentTime = 0.0;
 					params.playAudio = true;
 					var elem = document.getElementById("progressBar"); 
 					elem.style.display = 'none'; 
@@ -866,7 +867,7 @@
 				objUniforms.mouse.value = mouse;
 				objUniforms.lightColor.value = new THREE.Vector4(color.r, color.g, color.b, color.a);
 
-				console.log(sound);
+				// console.log(sound);
 				renderer.render( scene, camera );
 
 			}
