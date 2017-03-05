@@ -56,7 +56,7 @@
 			uniform float scale;
 			uniform float sinScale;
 			uniform float noiseIterations; 
-			uniform float pointSize; 
+			uniform float triangleSize; 
 			uniform float abMix;
 			uniform float highFrequencyMix;
 			uniform vec2 mouse;
@@ -201,7 +201,6 @@
         		float audioColor = colorContour * (audio[4] + audio[5] + audio[6] * audio[7] * 3.0)  * 0.0001;
         		// color = color * audioColor;
         		// if (audioColor > 1.0) {
-
 		    	 // color = 0.5 * sin(color * audioColor) + 0.5;
 	        	// }
 				// color.r += sin( vPosition.x * 10.0 + time ) * 0.5;
@@ -225,7 +224,7 @@
 			var audioCtx, source, stream, useMicrophone, micAnalyser, micData;
 			var pointLight, skyBox;
 
-			var gui, params, detail, pointSize, sizeCallBack, drawStyle, GeometryA, GeometryB, aSelectedGeometry, bSelectedGeometry;
+			var gui, params, detail, triangleSize, sizeCallBack, drawStyle, GeometryA, GeometryB, aSelectedGeometry, bSelectedGeometry;
 			var sound, playAudio, volume, geometry, material, mouse, noiseShape, noiseGeometry;
 
 			var colorTracker;
@@ -246,8 +245,8 @@
 					font = loadedFont;
 					init();
 					gui.closed = true;
-					animate();	
-				} );	
+					animate();
+				} );				
 			}
 
 			function init() {
@@ -256,8 +255,6 @@
 
 				camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 5, 50000 );
 				camera.position.set(0, 0, 1170);
-				// camera.position.set(250,-557, 253);
-
 				scene = new THREE.Scene();
 
 				colorTracker = new ColorTracker();
@@ -365,7 +362,7 @@
 						abMix : { value : params.abMix },
 						colorContour : { value: params.colorContour },
 						opacity : { value: params.opacity },
-						pointSize : { value: params.pointSize },
+						triangleSize : { value: params.triangleSize },
 						highFrequencyMix : {value : params.highFrequencyMix },
 						mouse : {value : mouse }
 
@@ -379,7 +376,6 @@
 				//Initializes the noiseShape with aSelectedGeometry and bSelectedGeometry.
 				aSelectedGeometry = "Solid Sphere";
 				bSelectedGeometry = "Text";
-				
 				params.style = "Mesh";
 				params.GeometryA = aSelectedGeometry;
 				params.GeometryB = bSelectedGeometry;
@@ -426,7 +422,7 @@
 					audioSmoothing: 0.94,
 					size : 2000,
 					detail : 200,
-					pointSize : 1,
+					triangleSize : 30.0,
 					playAudio : false,
 					useMicrophone : false,
 					scale : 0.15,
@@ -467,13 +463,13 @@
 					f2.add( params, "noiseIterations", 1.0, 8.0 );
 					detail = f3.add( params, "detail", 1, 300 );
 				}
-				f2.add( params, "sinScale", 0.0001, 0.8 ).listen();
+				f2.add( params, "sinScale", 0.0001, 1.8 ).listen();
 				f2.add( params, "scale", 0.01, 0.6 );
 				f2.add( params, "abMix", 0.0, 1.0 ).listen();
 				f2.add( params, "highFrequencyMix", 0.01, 1.0 ).listen();
 				sizeCallBack = f3.add( params, "size", 1, 3000 ).listen();
 				
-				pointSize = f3.add( params, "pointSize", 1, 20 );
+				triangleSize = f3.add( params, "triangleSize", 1, 32 ).listen();
 				drawStyle = f3.add( params, "style", params.style).listen();
 				GeometryA = f3.add( params, "GeometryA", params.GeometryA).listen();
 				GeometryB = f3.add( params, "GeometryB", params.GeometryB).listen();
@@ -520,7 +516,7 @@
 				}, null, null, 15.52);
 				keyFrames.push(keyFrame);
 
-				keyFrame = new KeyFrame({sinScale: 0.8, amplitude : 400}, function() {}, TWEEN.Easing.Quadratic.Out, 100, 23.4);
+				keyFrame = new KeyFrame({sinScale: 0.9, amplitude : 450}, function() {}, TWEEN.Easing.Quadratic.Out, 100, 19.55);
 				keyFrames.push(keyFrame);
 
 				keyFrame = new KeyFrame({time: -4.0}, function() {}, TWEEN.Easing.Quadratic.Out, 1000, 27);
@@ -530,7 +526,8 @@
 				keyFrames.push(keyFrame);
 
 				var keyFrame = new KeyFrame({camZ: 3000,
-											abMix: 0.0}, 
+											abMix: 0.0
+											}, 
 											function() { updatingCamera = true; }, 
 											TWEEN.Easing.Quadratic.InOut, 10000, 33.0, 
 											function(){ updatingCamera = false; });
@@ -548,7 +545,7 @@
 				keyFrame = new KeyFrame({pointLightIntensity: 0.2}, function() {}, TWEEN.Easing.Quadratic.InOut, 2000, 49.0);
 				keyFrames.push(keyFrame);
 
-				keyFrame = new KeyFrame({camZ: 500}, function() { updatingCamera = true; }, 
+				keyFrame = new KeyFrame({camZ: 450}, function() { updatingCamera = true; }, 
 											TWEEN.Easing.Quadratic.InOut, 5000, 50.0, 
 											function(){ updatingCamera = false; });
 				keyFrames.push(keyFrame);
@@ -573,14 +570,20 @@
 					updateGeomAndDrawStyle("Mesh");
 				}, null, null, 62);
 				keyFrames.push(keyFrame);
-
-				keyFrame = new KeyFrame({abMix: 0.999, amplitude : 300, time: -2.5}, function() {}, TWEEN.Easing.Quadratic.InOut, 3000, 69.0);
+				keyFrame = new KeyFrame({time: 2.5, sinScale :0.85 }, function() {}, TWEEN.Easing.Quadratic.InOut, 3000, 65.9);
+				keyFrames.push(keyFrame);
+				
+				keyFrame = new KeyFrame({abMix: 0.999, amplitude : 300, time: -2.5}, function() {}, TWEEN.Easing.Quadratic.InOut, 1000, 73.84);
+				keyFrames.push(keyFrame);
+				// keyFrame = new KeyFrame({abMix: 0.999, amplitude : 300, time: -2.5}, function() {}, TWEEN.Easing.Quadratic.InOut, 3000, 69.0);
+				// keyFrames.push(keyFrame);
+				keyFrame = new KeyFrame({time: 0.0}, function() {}, TWEEN.Easing.Quadratic.InOut, 1000, 76.0);
 				keyFrames.push(keyFrame);
 
-				keyFrame = new KeyFrame({abMix: 0.0, amplitude : 400, sensitivity : 0.8, highFrequencyMix : 0.7, camZ: 1320, time: -1.5}, function() {updatingCamera = true;}, TWEEN.Easing.Quadratic.InOut, 3000, 77.5, function() {updatingCamera=false;});
+				keyFrame = new KeyFrame({abMix: 0.0, amplitude : 400, sensitivity : 0.8, highFrequencyMix : 0.7, camZ: 1700, time: -1.5}, function() {updatingCamera = true;}, TWEEN.Easing.Quadratic.InOut, 3000, 77.5, function() {updatingCamera=false;});
 				keyFrames.push(keyFrame);
 
-				keyFrame = new KeyFrame({opacity : 0.0}, function() {}, TWEEN.Easing.Quadratic.InOut, 500, 92.0);
+				keyFrame = new KeyFrame({opacity : 0.0}, function() {}, TWEEN.Easing.Quadratic.InOut, 500, 92.2);
 				keyFrames.push(keyFrame);
 
 				keyFrame = new KeyFrame({
@@ -590,14 +593,20 @@
 				}, null, null, 93.0);
 				keyFrames.push(keyFrame);
 
-				keyFrame = new KeyFrame({opacity : 1.0}, function() {}, TWEEN.Easing.Quadratic.InOut, 100, 93.1);
+				keyFrame = new KeyFrame({opacity : 1.0}, function() {}, TWEEN.Easing.Quadratic.InOut, 500, 93.1);
 				keyFrames.push(keyFrame);
 
-				keyFrame = new KeyFrame({camZ: 625.0, time: -4.0}, function() {updatingCamera = true;}, TWEEN.Easing.Quadratic.InOut, 8000, 94.0, function() {updatingCamera=false;});
+				keyFrame = new KeyFrame({camX: 0.0, camZ: 625.0, time: -4.0}, function() {updatingCamera = true;}, TWEEN.Easing.Quadratic.InOut, 10000, 94.0, function() {updatingCamera=false;});
 				keyFrames.push(keyFrame);
 
+				keyFrame = new KeyFrame({}, function() {}, null, null, 125.0, function() {gui.closed = false;});
+				keyFrames.push(keyFrame);
 
+				// keyFrame = new KeyFrame({opacity: 1.0}, function() {}, TWEEN.Easing.Quadratic.InOut, 4000, 126.0);
+				// keyFrames.push(keyFrame);
 
+				// keyFrame = new KeyFrame({sinScale: 0.8}, function() {}, TWEEN.Easing.Quadratic.InOut, 4000, 128.0);
+				// keyFrames.push(keyFrame);
 
 			}
 
@@ -700,7 +709,7 @@
 				} else if( selectedGeometry == "Sphere" ) {
 					worker.postMessage([geomToUpdate, selectedGeometry, params.size, params.detail]);
 				} else if( selectedGeometry == "Solid Sphere" ) {
-					worker.postMessage([geomToUpdate, selectedGeometry, params.size, params.detail, params.pointSize]);
+					worker.postMessage([geomToUpdate, selectedGeometry, params.size, params.detail, params.triangleSize]);
 				} else if ( selectedGeometry == "Text" ) {
 					worker.postMessage([geomToUpdate, selectedGeometry, params.size, params.detail, font, params.text]);
 				}  
@@ -750,7 +759,7 @@
 				asyncUpdateGeometry("B", bSelectedGeometry);
 			});
 
-			pointSize.onChange(function(value) {
+			triangleSize.onChange(function(value) {
 				asyncUpdateGeometry("A", aSelectedGeometry);
 				asyncUpdateGeometry("B", bSelectedGeometry);
 			});
@@ -814,6 +823,7 @@
 					sound.currentTime = new Date().getTime() / 1000 - sound.startTimer;
 				}
 				keyFrames.update(sound.currentTime, params);
+
 				
 				colorTracker.update();
 				var object = noiseShape;
@@ -874,7 +884,7 @@
 				objUniforms.sinScale.value = params.sinScale;
 				objUniforms.colorContour.value = params.colorContour;
 				objUniforms.opacity.value = params.opacity;
-				objUniforms.pointSize.value = params.pointSize;
+				objUniforms.triangleSize.value = params.triangleSize;
 				objUniforms.highFrequencyMix.value = params.highFrequencyMix;
 				objUniforms.mouse.value = mouse;
 				objUniforms.lightColor.value = new THREE.Vector4(color.r, color.g, color.b, color.a);
