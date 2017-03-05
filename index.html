@@ -577,10 +577,10 @@
 				keyFrame = new KeyFrame({abMix: 0.999, amplitude : 300, time: -2.5}, function() {}, TWEEN.Easing.Quadratic.InOut, 3000, 69.0);
 				keyFrames.push(keyFrame);
 
-				keyFrame = new KeyFrame({abMix: 0.0, amplitude : 400, sensitivity : 0.8, highFrequencyMix : 0.7, camZ: 1015}, function() {updatingCamera = true;}, TWEEN.Easing.Quadratic.InOut, 3000, 77.5, function() {updatingCamera=false;});
+				keyFrame = new KeyFrame({abMix: 0.0, amplitude : 400, sensitivity : 0.8, highFrequencyMix : 0.7, camZ: 1320, time: -1.5}, function() {updatingCamera = true;}, TWEEN.Easing.Quadratic.InOut, 3000, 77.5, function() {updatingCamera=false;});
 				keyFrames.push(keyFrame);
 
-				keyFrame = new KeyFrame({opacity : 0.0}, function() {}, TWEEN.Easing.Quadratic.InOut, 100, 92.0);
+				keyFrame = new KeyFrame({opacity : 0.0}, function() {}, TWEEN.Easing.Quadratic.InOut, 500, 92.0);
 				keyFrames.push(keyFrame);
 
 				keyFrame = new KeyFrame({
@@ -593,7 +593,7 @@
 				keyFrame = new KeyFrame({opacity : 1.0}, function() {}, TWEEN.Easing.Quadratic.InOut, 100, 93.1);
 				keyFrames.push(keyFrame);
 
-				keyFrame = new KeyFrame({camZ: 800}, function() {updatingCamera = true;}, TWEEN.Easing.Quadratic.InOut, 3000, 94.0, function() {updatingCamera=false;});
+				keyFrame = new KeyFrame({camZ: 625.0, time: -4.0}, function() {updatingCamera = true;}, TWEEN.Easing.Quadratic.InOut, 8000, 94.0, function() {updatingCamera=false;});
 				keyFrames.push(keyFrame);
 
 
