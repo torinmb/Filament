@@ -305,6 +305,7 @@
 		        
 		        sound = new THREE.Audio( listener );
 		        sound.startTimer = -1.0;
+		        sound.startTime = 0.0;
 		        sound.currentTime = 0.0;
 		        var audioLoader = new THREE.AudioLoader();
 		        var url = 'audio/Mike Gao - Adventura 320kbps.mp3'
@@ -316,7 +317,7 @@
 					sound.setVolume(0.5);
 					sound.play();
 					sound.autoplay = true;
-					sound.startTimer = new Date().getTime() / 1000;
+					sound.startTimer = new Date().getTime() / 1000 - sound.startTime;
 					params.playAudio = true;
 					var elem = document.getElementById("progressBar"); 
 					elem.style.display = 'none'; 
@@ -454,7 +455,7 @@
 					highFrequencyMix : 1.0,
 					audioSmoothing: 0.9,
 					size : 2000,
-					detail : 175,
+					detail : 200,
 					pointSize : 1,
 					playAudio : false,
 					useMicrophone : false,
@@ -493,7 +494,7 @@
 					f2.add( params, "noiseIterations", 1.0, 8.0 );
 					detail = f3.add( params, "detail", 1, 300 );
 				}
-				f2.add( params, "sinScale", 0.0001, 0.8 );
+				f2.add( params, "sinScale", 0.0001, 0.8 ).listen();
 				f2.add( params, "scale", 0.01, 0.6 );
 				f2.add( params, "abMix", 0.0, 1.0 ).listen();
 				f2.add( params, "highFrequencyMix", 0.01, 1.0 ).listen();
@@ -526,16 +527,16 @@
 					time : -2.0, 
 					sinScale : 0.07
 				}, function() {
-				}, TWEEN.Easing.Quadratic.Out, 6500, 7.5);
+				}, TWEEN.Easing.Quadratic.Out, 6000, 7.7);
 				keyFrames.push(keyFrame);
 
 				keyFrame = new KeyFrame({}, function() {
 					asyncUpdateGeometry("B", "Plane");
 					bSelectedGeometry = "Plane";
-				}, null, null, 13.3);
+				}, null, null, 13.6);
 				keyFrames.push(keyFrame);
 
-				keyFrame = new KeyFrame({abMix: 0.7, time: 4.0}, function() {}, TWEEN.Easing.Quadratic.Out, 1000, 13.6);
+				keyFrame = new KeyFrame({abMix: 0.7, time: 4.0}, function() {}, TWEEN.Easing.Quadratic.InOut, 800, 14.6);
 				keyFrames.push(keyFrame);
 
 				keyFrame = new KeyFrame({
