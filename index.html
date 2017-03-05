@@ -305,7 +305,7 @@
 		        
 		        sound = new THREE.Audio( listener );
 		        sound.startTimer = -1.0;
-		        sound.startTime = 0.0;
+		        sound.startTime = 6.0;
 		        sound.currentTime = 0.0;
 		        var audioLoader = new THREE.AudioLoader();
 		        var url = 'audio/Mike Gao - Adventura 320kbps.mp3'
@@ -485,12 +485,12 @@
 					params['noiseIterations'] = 3.0;
 					params['sensitivity'] = 1.0;
 					f2.add( params, "sensitivity", 0.2, 10.0 );
-					f2.add( params, "amplitude", 1.0, 500.0 );
+					f2.add( params, "amplitude", 1.0, 500.0 ).listen();
 					f2.add( params, "noiseIterations", 1.0, 6.0 );
 					detail = f3.add( params, "detail", 1, 300 );
 				} else {
 					f2.add( params, "sensitivity", 0.2, 10.0 );
-					f2.add( params, "amplitude", 1.0, 500.0 );
+					f2.add( params, "amplitude", 1.0, 500.0 ).listen();
 					f2.add( params, "noiseIterations", 1.0, 8.0 );
 					detail = f3.add( params, "detail", 1, 300 );
 				}
@@ -546,7 +546,7 @@
 				}, null, null, 15.52);
 				keyFrames.push(keyFrame);
 
-				keyFrame = new KeyFrame({sinScale: 0.8}, function() {}, TWEEN.Easing.Quadratic.Out, 100, 23.4);
+				keyFrame = new KeyFrame({sinScale: 0.8, amplitude : 400}, function() {}, TWEEN.Easing.Quadratic.Out, 100, 23.4);
 				keyFrames.push(keyFrame);
 
 				keyFrame = new KeyFrame({time: -4.0}, function() {}, TWEEN.Easing.Quadratic.Out, 1000, 27);
@@ -554,6 +554,20 @@
 
 				keyFrame = new KeyFrame({time: 2.0}, function() {}, TWEEN.Easing.Quadratic.Out, 1000, 30);
 				keyFrames.push(keyFrame);
+
+				keyFrame = new KeyFrame({abMix: 0.0}, function() {}, TWEEN.Easing.Quadratic.InOut, 1000, 35.6);
+				keyFrames.push(keyFrame);
+
+				keyFrame = new KeyFrame({}, function() {
+					asyncUpdateGeometry("B", "Sphere");
+					bSelectedGeometry = "Sphere";
+				}, null, null, 40);
+				keyFrames.push(keyFrame);		
+
+				keyFrame = new KeyFrame({abMix: 1.0, sensitivity : 2.0}, function() {}, TWEEN.Easing.Quadratic.InOut, 1000, 45.6);
+				keyFrames.push(keyFrame);		
+
+
 
 				// keyFrame = new KeyFrame({time: 3.5}, function() {}, TWEEN.Easing.Quadratic.Out, 1000, 35);
 				// keyFrames.push(keyFrame);																		
@@ -793,6 +807,7 @@
 
 			function onDocumentMouseClick(event) {
 				console.log(sound.currentTime);
+				console.log(camera.position);
 			}			
 
 			function onWindowResize( event ) {
