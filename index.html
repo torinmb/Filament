@@ -423,7 +423,7 @@
 					time : 0.2,
 					noiseIterations : 8.0,
 					highFrequencyMix : 1.0,
-					audioSmoothing: 0.9,
+					audioSmoothing: 0.94,
 					size : 2000,
 					detail : 200,
 					pointSize : 1,
@@ -545,7 +545,7 @@
 				keyFrame = new KeyFrame({abMix: 1.0, sensitivity : 2.0}, function() {}, TWEEN.Easing.Quadratic.InOut, 3000, 45.6);
 				keyFrames.push(keyFrame);
 
-				keyFrame = new KeyFrame({pointLightIntensity: 0.1}, function() {}, TWEEN.Easing.Quadratic.InOut, 2000, 49.0);
+				keyFrame = new KeyFrame({pointLightIntensity: 0.2}, function() {}, TWEEN.Easing.Quadratic.InOut, 2000, 49.0);
 				keyFrames.push(keyFrame);
 
 				keyFrame = new KeyFrame({camZ: 500}, function() { updatingCamera = true; }, 
@@ -564,6 +564,9 @@
 				}, null, null, 56.2);
 				keyFrames.push(keyFrame);
 
+				keyFrame = new KeyFrame({pointLightIntensity: 0.0}, function() {}, TWEEN.Easing.Quadratic.InOut, 1000, 60.0);
+				keyFrames.push(keyFrame);
+
 				keyFrame = new KeyFrame({
 					style: "Mesh"
 				}, function() {
@@ -571,20 +574,19 @@
 				}, null, null, 62);
 				keyFrames.push(keyFrame);
 
-				keyFrame = new KeyFrame({pointLightIntensity: 0.0}, function() {}, TWEEN.Easing.Quadratic.InOut, 10, 63.0);
-				keyFrames.push(keyFrame);			
+							
 
-				keyFrame = new KeyFrame({abMix: 0.99, amplitude : 300, time: -3.0}, function() {}, TWEEN.Easing.Quadratic.InOut, 3000, 69.0);
+				keyFrame = new KeyFrame({abMix: 0.999, amplitude : 300, time: -2.0}, function() {}, TWEEN.Easing.Quadratic.InOut, 3000, 69.0);
+				keyFrames.push(keyFrame);
+
+				keyFrame = new KeyFrame({abMix: 0.0, amplitude : 400, sensitivity : 0.8, highFrequencyMix : 0.7}, function() {}, TWEEN.Easing.Quadratic.InOut, 3000, 77.5);
 				keyFrames.push(keyFrame);
 
 				keyFrame = new KeyFrame({
 					style: "Points"
 				}, function() {
 					updateGeomAndDrawStyle("Points");
-				}, null, null, 75.0);
-				keyFrames.push(keyFrame);
-
-				keyFrame = new KeyFrame({abMix: 0.0, amplitude : 400, sensitivity : 0.8, highFrequencyMix : 0.6}, function() {}, TWEEN.Easing.Quadratic.InOut, 3000, 69.0);
+				}, null, null, 80.0);
 				keyFrames.push(keyFrame);
 
 
