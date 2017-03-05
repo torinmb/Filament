@@ -1,57 +1,33 @@
 <!DOCTYPE html>
-<html lang="en">
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:fb="http://ogp.me/ns/fb#"
+      lang="en">
 	<head>
 		<title>Filament Music Visualizer</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-		<style>
-			body {
-				color: #ffffff;
-				font-family:Monospace;
-				font-size:13px;
-				text-align:center;
-				font-weight: bold;
+		<meta property="og:image" content="Filament.jpg" />
+		<link rel="stylesheet" href="main.css" />
+		<script>
+		  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+		  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+		  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+		  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
 
-				background-color: #000000;
-				margin: 0px;
-				overflow: hidden;
-			}
+		  ga('create', 'UA-92983687-1', 'auto');
+		  ga('send', 'pageview');
 
-			#info {
-				position: absolute;
-				top: 0px; width: 100%;
-				padding: 5px;
-			}
-
-			a {
-				color: #ffffff;
-			}
-
-			#oldie a { color:#da0 }
-
-			#progressBar {
-				position: absolute;
-			    width: 80%;
-			    top: 50%;
-			    left: 50%;
-			    z-index: 2;
-			    transform: translate(-50%, -50%);
-			    background-color: grey;
-			    z-index: 10;
-			}
-
-			#bar {
-			    width: 1%;
-			    height: 30px;
-			    background-color: white;
-			}
-		</style>
+		</script>
 	</head>
 	<body>
 
 		<div id="container"></div>
 		<!-- <div id="info"><a href="http://uwc.graphics" target="_blank">CGPP</a> FBM Triangle Shredder</div> -->
-		<div id="progressBar">
+		<div id="playButton" class="floatCenter">
+			<img src="Play@2x.png"/>
+		</div>
+		<div id="progressBar" class="floatCenter">
 		  <div id="bar"></div>
 		</div>
 		<script src="js/MobileAndTabletCheck.js"></script>
@@ -251,7 +227,6 @@
 
 			var gui, params, detail, pointSize, sizeCallBack, drawStyle, GeometryA, GeometryB, aSelectedGeometry, bSelectedGeometry;
 			var sound, playAudio, volume, geometry, material, mouse, noiseShape, noiseGeometry;
-			var firstExecutionFlag = true;
 
 			var colorTracker;
 			var worker;
@@ -261,23 +236,31 @@
 			var keyFrames, tween;
 			var updatingCamera = false;
 
-			loader.load( 'fonts/SharpSansNo1Medium_Regular.json', function ( loadedFont ) {
-				font = loadedFont;
-				//Initializes the noiseShape with aSelectedGeometry and bSelectedGeometry.
-				aSelectedGeometry = "Solid Sphere";
-				bSelectedGeometry = "Text";
-				
-				params.style = "Mesh";
-				params.GeometryA = aSelectedGeometry;
-				params.GeometryB = bSelectedGeometry;
-				updateGeomAndDrawStyle("Mesh");
-			} );	
-			init();
-			// console.log(scene.children[0]);
-			// params.detail = 175;
-			// updateGeomAndDrawStyle("Line");
-			gui.closed = true;
-			animate();		
+			var playButton = document.getElementById("playButton")
+			playButton.addEventListener( 'click', playPressed, false );
+			var progressBar = document.getElementById("progressBar");
+			progressBar.style.visibility = 'hidden'; 
+
+			function playPressed(event) {
+				progressBar.style.visibility = 'visible'; 
+				playButton.style.visibility = 'hidden'; 
+				loader.load( 'fonts/SharpSansNo1Medium_Regular.json', function ( loadedFont ) {
+					font = loadedFont;
+					//Initializes the noiseShape with aSelectedGeometry and bSelectedGeometry.
+					aSelectedGeometry = "Solid Sphere";
+					bSelectedGeometry = "Text";
+					
+					params.style = "Mesh";
+					params.GeometryA = aSelectedGeometry;
+					params.GeometryB = bSelectedGeometry;
+					updateGeomAndDrawStyle("Mesh");
+				} );	
+				init();
+				gui.closed = true;
+				animate();		
+			}
+
+			
 
 			function init() {
 
@@ -318,17 +301,16 @@
 					sound.autoplay = true;
 					sound.startTimer = new Date().getTime() / 1000 - sound.startTime;
 					params.playAudio = true;
-					var elem = document.getElementById("progressBar"); 
-					elem.style.display = 'none'; 
+					progressBar.style.display = 'none'; 
 		        },
 				function ( xhr ) {
 					var percent = xhr.loaded / xhr.total * 100;
 					console.log( percent + '% loaded' );
 				    var elem = document.getElementById("bar"); 
-				    elem.style.width = percent + '%'; 
+				    progressBar.style.width = percent + '%'; 
 				},
 				function ( xhr ) {
-					console.log( 'An error happened' );
+					console.log( 'Error loading audio' );
 				});
     			navigator.getUserMedia = (navigator.getUserMedia ||
               			  navigator.webkitGetUserMedia ||
@@ -572,7 +554,8 @@
 				keyFrames.push(keyFrame);		
 
 				keyFrame = new KeyFrame({abMix: 1.0, sensitivity : 2.0}, function() {}, TWEEN.Easing.Quadratic.InOut, 3000, 45.6);
-				keyFrames.push(keyFrame);		
+				keyFrames.push(keyFrame);
+
 
 			}
 

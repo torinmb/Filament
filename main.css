@@ -1,0 +1,43 @@
+body {
+	color: #ffffff;
+	font-family:Monospace;
+	font-size:13px;
+	text-align:center;
+	font-weight: bold;
+
+	background-color: #000000;
+	margin: 0px;
+	overflow: hidden;
+}
+
+#info {
+	position: absolute;
+	top: 0px; width: 100%;
+	padding: 5px;
+}
+
+a {
+	color: #ffffff;
+}
+
+#oldie a { color:#da0 }
+
+.floatCenter {
+	position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;	
+}
+
+#progressBar {
+	width: 80%;
+	background-color: grey;
+}
+
+
+#bar {
+    width: 1%;
+    height: 30px;
+    background-color: white;
+}
