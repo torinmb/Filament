@@ -259,6 +259,7 @@
 			var loader = new THREE.FontLoader();
 			var font;
 			var keyFrames, tween;
+			var updatingCamera = false;
 
 			loader.load( 'fonts/SharpSansNo1Medium_Regular.json', function ( loadedFont ) {
 				font = loadedFont;
@@ -283,7 +284,7 @@
 				container = document.getElementById( 'container' );
 
 				camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 5, 50000 );
-				camera.position.set(0, -0, 1170);
+				camera.position.set(0, 0, 1170);
 				// camera.position.set(250,-557, 253);
 
 				scene = new THREE.Scene();
@@ -305,12 +306,10 @@
 		        
 		        sound = new THREE.Audio( listener );
 		        sound.startTimer = -1.0;
-		        sound.startTime = 6.0;
+		        sound.startTime = 0.0;
 		        sound.currentTime = 0.0;
 		        var audioLoader = new THREE.AudioLoader();
 		        var url = 'audio/Mike Gao - Adventura 320kbps.mp3'
-		        // var url = 'audio/JaiPaul.mp3'
-		        // var url = 'audio/TiredBoy.mp3'
 		        audioLoader.load( url , function( buffer ) {
 					sound.setBuffer( buffer );
 					sound.setLoop(true);
@@ -469,7 +468,10 @@
 					style : ['Points', 'Line', 'Mesh'],
 					text : "FILAMENT",
 					GeometryA : ['Plane', 'Sphere', 'Solid Sphere', 'Text'],
-					GeometryB : ['Plane', 'Sphere', 'Solid Sphere', 'Text']
+					GeometryB : ['Plane', 'Sphere', 'Solid Sphere', 'Text'],
+					camX : 0.0,
+					camY : 0.0,
+					camZ : 1170.0
 				};
 				gui = new dat.GUI();
 				var f1 = gui.addFolder('Lights');
@@ -517,7 +519,6 @@
 
 			function initKeyFrames(keyFrames) {
 
-				
 				var keyFrame = new KeyFrame({sinScale: 0.02}, function() {}, TWEEN.Easing.Quadratic.Out, 80, 7.0);
 				keyFrames.push(keyFrame);
 				keyFrame = new KeyFrame({
@@ -555,8 +556,14 @@
 				keyFrame = new KeyFrame({time: 2.0}, function() {}, TWEEN.Easing.Quadratic.Out, 1000, 30);
 				keyFrames.push(keyFrame);
 
-				keyFrame = new KeyFrame({abMix: 0.0}, function() {}, TWEEN.Easing.Quadratic.InOut, 1000, 35.6);
+				var keyFrame = new KeyFrame({camZ: 3000,
+											abMix: 0.0}, 
+											function() {updatingCamera = true;}, 
+											TWEEN.Easing.Quadratic.InOut, 10000, 33.0, 
+											function(){updatingCamera = false;});
 				keyFrames.push(keyFrame);
+
+			
 
 				keyFrame = new KeyFrame({}, function() {
 					asyncUpdateGeometry("B", "Sphere");
@@ -564,33 +571,8 @@
 				}, null, null, 40);
 				keyFrames.push(keyFrame);		
 
-				keyFrame = new KeyFrame({abMix: 1.0, sensitivity : 2.0}, function() {}, TWEEN.Easing.Quadratic.InOut, 1000, 45.6);
+				keyFrame = new KeyFrame({abMix: 1.0, sensitivity : 2.0}, function() {}, TWEEN.Easing.Quadratic.InOut, 3000, 45.6);
 				keyFrames.push(keyFrame);		
-
-
-
-				// keyFrame = new KeyFrame({time: 3.5}, function() {}, TWEEN.Easing.Quadratic.Out, 1000, 35);
-				// keyFrames.push(keyFrame);																		
-
-				// keyFrame = new KeyFrame({abMix: 0.0}, function() {}, TWEEN.Easing.Quadratic.Out, 10000, 40);
-				// keyFrames.push(keyFrame);
-
-				// var keyFrame = new KeyFrame({
-				// 	size: 3400
-				// }, function() {
-				// 	sizeCallBack.setValue(params.size);
-				// }, TWEEN.Easing.Quadratic.Out, 1, 1);
-				// keyFrames.push(keyFrame);
-
-
-
-				// keyFrame = new KeyFrame({
-				// 	size: 1000,
-				// }, function() {
-				// 	sizeCallBack.setValue(params.size);
-				// }, TWEEN.Easing.Quadratic.Out, 3000, 35);
-				// keyFrames.push(keyFrame);
-
 
 			}
 
@@ -682,35 +664,6 @@
 					}
 
 				}
-
-
-				// var newP = new Float32Array( count );
-				// var pArr = geo.getAttribute("position").array;
-				// var countMin = Math.min( geo.getAttribute("position").count * 3, count);
-				// var countMax = Math.max( geo.getAttribute("position").count * 3, count);
-				// for (var i = 0; i < countMin; i++ ) {
-				// 	newP[i] = pArr[i];
-				// }
-				// for (var i = countMin; i < countMax; i++ ) {
-				// 	newP[i] = 0;
-				// }
-				// var newN = new Float32Array( count );
-				// var nArr = geo.getAttribute("normal").array;
-				// countMin = Math.min( geo.getAttribute("normal").count * 3, count);
-				// countMax = Math.max( geo.getAttribute("normal").count * 3, count);
-				// for (var i = 0; i < countMin; i++ ) {
-				// 	newN[i] = nArr[i];
-				// }
-				// for (var i = countMin; i < countMax; i++ ) {
-				// 	newN[i] = 0;
-				// }
-				// if (geomToUpdate === "A") {
-				// 	noiseGeometry.addAttribute( "position", new THREE.BufferAttribute( newP, 3));
-			 // 		noiseGeometry.addAttribute( "normal", new THREE.BufferAttribute( newN, 3));
-				// } else {
-				// 	noiseGeometry.addAttribute( "positionB", new THREE.BufferAttribute( newP, 3));
-			 // 		noiseGeometry.addAttribute( "normalB", new THREE.BufferAttribute( newN, 3));	
-				// }
  				
 				noiseShape.geometry.needsUpdate = true;
 			}
@@ -808,6 +761,7 @@
 			function onDocumentMouseClick(event) {
 				console.log(sound.currentTime);
 				console.log(camera.position);
+				// console.log(params.camera);
 			}			
 
 			function onWindowResize( event ) {
@@ -878,8 +832,11 @@
 
 				var hsl = color.getHSL();
 				color.setHSL(hsl.h, params.saturation, hsl.l);
-
-				camera.lookAt(object.position);
+				if(updatingCamera) {
+					camera.position.set(params.camX, params.camY, params.camZ);
+				}
+				//camera.position.set(parseInt(params.camX), parseInt(params.camY), parseInt(params.camZ));
+				
 				// object.rotation.z = -Math.PI / 2;
 				var objUniforms = object.material.uniforms;
 				objUniforms.audio.value = audioArray;

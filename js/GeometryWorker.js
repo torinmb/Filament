@@ -121,26 +121,6 @@ function generateSolidSphereGeometry(size, detail, triangleSize) {
 		normals[ i + 7 ] = ny * 32767;
 		normals[ i + 8 ] = nz * 32767;
 
-		// colors
-
-		var vx = (  x / sphereRaduis/2 ) + 0.7;
-		var vy = (  y / sphereRaduis/2) + 0.7;
-		var vz = (  z / sphereRaduis/2) + 0.7;
-
-		color.setRGB( vx, vy, vz );
-
-		colors[ i ]     = color.r * 255;
-		colors[ i + 1 ] = color.g * 255;
-		colors[ i + 2 ] = color.b * 255;
-
-		colors[ i + 3 ] = color.r * 255;
-		colors[ i + 4 ] = color.g * 255;
-		colors[ i + 5 ] = color.b * 255;
-
-		colors[ i + 6 ] = color.r * 255;
-		colors[ i + 7 ] = color.g * 255;
-		colors[ i + 8 ] = color.b * 255;
-
 	}
 
 	geometry.setIndex( new THREE.BufferAttribute( indices, 1 ) );
