@@ -531,7 +531,7 @@
 				}, null, null, 14.3);
 				keyFrames.push(keyFrame);
 
-				keyFrame = new KeyFrame({abMix: 0.7, time: 4.0}, function() {}, TWEEN.Easing.Quadratic.Out, 1000, 15.4);
+				keyFrame = new KeyFrame({abMix: 0.7, time: 4.0}, function() {}, TWEEN.Easing.Quadratic.Out, 1000, 15.8);
 				keyFrames.push(keyFrame);
 
 				keyFrame = new KeyFrame({
@@ -866,7 +866,7 @@
 				objUniforms.mouse.value = mouse;
 				objUniforms.lightColor.value = new THREE.Vector4(color.r, color.g, color.b, color.a);
 
-				console.log(camera.position);
+				console.log(sound);
 				renderer.render( scene, camera );
 
 			}
