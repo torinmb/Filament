@@ -477,7 +477,7 @@
 				f1.add( params, "opacity", 0.0, 1.0 ).listen();
 				f1.add( params, "saturation", 0.0, 1.0 ).listen();
 				var f2 = gui.addFolder('Noise');
-				f2.add( params, "time", -2.0, 8.0 ).listen();
+				f2.add( params, "time", -4.0, 8.0 ).listen();
 				var f3 = gui.addFolder('Geometry');
 				if( window.mobileAndTabletCheck() ) {
 					params['detail'] = 20;
@@ -517,15 +517,16 @@
 			function initKeyFrames(keyFrames) {
 
 				
-
-				var keyFrame = new KeyFrame({
+				var keyFrame = new KeyFrame({sinScale: 0.02}, function() {}, TWEEN.Easing.Quadratic.Out, 80, 7.0);
+				keyFrames.push(keyFrame);
+				keyFrame = new KeyFrame({
 					abMix: 0.0,
 					highFrequencyMix : 0.8,
 					amplitude : 100,
 					time : -2.0, 
 					sinScale : 0.07
 				}, function() {
-				}, TWEEN.Easing.Quadratic.Out, 7000, 7.1);
+				}, TWEEN.Easing.Quadratic.Out, 6500, 7.5);
 				keyFrames.push(keyFrame);
 
 				keyFrame = new KeyFrame({}, function() {
@@ -534,7 +535,7 @@
 				}, null, null, 13.3);
 				keyFrames.push(keyFrame);
 
-				keyFrame = new KeyFrame({abMix: 0.7, time: 4.0}, function() {}, TWEEN.Easing.Quadratic.Out, 1000, 13.5);
+				keyFrame = new KeyFrame({abMix: 0.7, time: 4.0}, function() {}, TWEEN.Easing.Quadratic.Out, 1000, 13.6);
 				keyFrames.push(keyFrame);
 
 				keyFrame = new KeyFrame({
@@ -544,10 +545,14 @@
 				}, null, null, 15.52);
 				keyFrames.push(keyFrame);
 
-				
+				keyFrame = new KeyFrame({sinScale: 0.8}, function() {}, TWEEN.Easing.Quadratic.Out, 100, 23.4);
+				keyFrames.push(keyFrame);
 
-				// keyFrame = new KeyFrame({time: -2.0}, function() {}, TWEEN.Easing.Quadratic.Out, 1000, 30);
-				// keyFrames.push(keyFrame);
+				keyFrame = new KeyFrame({time: -4.0}, function() {}, TWEEN.Easing.Quadratic.Out, 1000, 27);
+				keyFrames.push(keyFrame);
+
+				keyFrame = new KeyFrame({time: 2.0}, function() {}, TWEEN.Easing.Quadratic.Out, 1000, 30);
+				keyFrames.push(keyFrame);
 
 				// keyFrame = new KeyFrame({time: 3.5}, function() {}, TWEEN.Easing.Quadratic.Out, 1000, 35);
 				// keyFrames.push(keyFrame);																		
