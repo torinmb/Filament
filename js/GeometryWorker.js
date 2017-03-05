@@ -16,7 +16,7 @@ onmessage = function(e) {
 	} else if( selectedGeometry == "Solid Sphere" ) {
 		// var triangleSize = e.data[4];
 		var triangleSize = 30.0;
-		geometry = generateSolidSphereGeometry(size, detail, triangleSize).toNonIndexed();
+		geometry = generateSolidSphereGeometry(size, detail * 4, triangleSize).toNonIndexed();
 	} else if ( selectedGeometry == "Text" ) {
 		var font = e.data[4];
 		var text = e.data[5];
@@ -157,17 +157,17 @@ function generateText(size, detail, font, text) {
 	
 	var geometry = new THREE.TextGeometry( text, {
 		font: font,
-		size: size,
+		size: size/10.0,
 		height: 5,
-		curveSegments: detail / 10.0,
-		bevelThickness: 20,
+		curveSegments: detail*10.0,
+		bevelThickness: 10,
 		bevelSize: 1,
 		bevelEnabled: true
 	});
 
-	var tessellateModifier = new THREE.TessellateModifier( 10 );
+	var tessellateModifier = new THREE.TessellateModifier( 5 );
 
-	for ( var i = 0; i < 8; i ++ ) {
+	for ( var i = 0; i < 6; i ++ ) {
 		tessellateModifier.modify( geometry );
 	}
 	
@@ -175,6 +175,7 @@ function generateText(size, detail, font, text) {
 	t.computeBoundingBox();
 	t.computeVertexNormals();
 	t.center();
+
 
 	return t.toNonIndexed();
 }

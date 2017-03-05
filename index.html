@@ -194,7 +194,7 @@
 	        //p.z += 20000.0 / (1.0+dist);
 
 			gl_Position = projectionMatrix * modelViewMatrix * vec4( p, 1.0 );
-			gl_PointSize = pointSize * (audio[2] * audio[4] + audio[5] + audio[6] * audio[7] * 3.0)  * 0.0001;
+			gl_PointSize = 1.0;//min(pointSize * (audio[2] * audio[4] + audio[5] + audio[6] * audio[7] * 3.0)  * 0.0001, 2.0);
 
 		}
 
@@ -221,10 +221,12 @@
 				
 				vec4 color = lightColor;//vec4( vColor );
         		color *= dot(normalize(vNormal),lightDir);
+
         		float audioColor = colorContour * (audio[4] + audio[5] + audio[6] * audio[7] * 3.0)  * 0.0001;
+        		// color = color * audioColor;
         		// if (audioColor > 1.0) {
 
-		    	// color = 0.5 * sin(color * audioColor) + 0.5;
+		    	 // color = 0.5 * sin(color * audioColor) + 0.5;
 	        	// }
 				// color.r += sin( vPosition.x * 10.0 + time ) * 0.5;
 				color.a = opacity;
@@ -260,11 +262,19 @@
 
 			loader.load( 'fonts/SharpSansNo1Medium_Regular.json', function ( loadedFont ) {
 				font = loadedFont;
+				//Initializes the noiseShape with aSelectedGeometry and bSelectedGeometry.
+				aSelectedGeometry = "Solid Sphere";
+				bSelectedGeometry = "Text";
+				
+				params.style = "Mesh";
+				params.GeometryA = aSelectedGeometry;
+				params.GeometryB = bSelectedGeometry;
+				updateGeomAndDrawStyle("Mesh");
 			} );	
 			init();
-			console.log(scene.children[0]);
-			params.detail = 175;
-			updateGeomAndDrawStyle("Line");
+			// console.log(scene.children[0]);
+			// params.detail = 175;
+			// updateGeomAndDrawStyle("Line");
 			gui.closed = true;
 			animate();		
 
@@ -273,7 +283,7 @@
 				container = document.getElementById( 'container' );
 
 				camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 5, 50000 );
-				camera.position.set(0, -770, 210);
+				camera.position.set(0, -0, 1170);
 				// camera.position.set(250,-557, 253);
 
 				scene = new THREE.Scene();
@@ -296,6 +306,7 @@
 		        var audioLoader = new THREE.AudioLoader();
 		        var url = 'audio/Mike Gao - Adventura 320kbps.mp3'
 		        // var url = 'audio/JaiPaul.mp3'
+		        // var url = 'audio/TiredBoy.mp3'
 		        audioLoader.load( url , function( buffer ) {
 					sound.setBuffer( buffer );
 					sound.setLoop(true);
@@ -391,13 +402,13 @@
 				} );
 
 				//Initializes the noiseShape with aSelectedGeometry and bSelectedGeometry.
-				aSelectedGeometry = "Plane";
-				bSelectedGeometry = "Sphere";
-				updateGeomAndDrawStyle("Line");
-				params.style = "Line";
+				aSelectedGeometry = "Solid Sphere";
+				bSelectedGeometry = "Plane";
+				
+				params.style = "Mesh";
 				params.GeometryA = aSelectedGeometry;
 				params.GeometryB = bSelectedGeometry;
-
+				updateGeomAndDrawStyle("Mesh");
 				keyFrames = new KeyFrames();
 				initKeyFrames(keyFrames);
 
@@ -431,27 +442,27 @@
 
 			function initGui() {
 				params = {
-					sensitivity: 4.0,
-					amplitude : 250,
-					pointLightIntensity : 0.01,
-					time : -1.2,
-					noiseIterations : 6.0,
-					highFrequencyMix : 0.1,
+					sensitivity: 0.2,
+					amplitude : 500,
+					pointLightIntensity : 0.001,
+					time : 0.2,
+					noiseIterations : 8.0,
+					highFrequencyMix : 1.0,
 					audioSmoothing: 0.9,
-					size : 1,
-					detail : 200,
+					size : 2000,
+					detail : 175,
 					pointSize : 1,
 					playAudio : false,
 					useMicrophone : false,
 					scale : 0.15,
-					abMix : 0.0,
-					sinScale : 0.9,
+					abMix : 1.0,
+					sinScale : 0.01,
 					volume : 0.5,
 					colorContour : 1.3, 
-					opacity : 0.8,
-					saturation : 0.9,
+					opacity : 1.0,
+					saturation : 1.0,
 					style : ['Points', 'Line', 'Mesh'],
-					text : "CGPP",
+					text : "FILAMENT",
 					GeometryA : ['Plane', 'Sphere', 'Solid Sphere', 'Text'],
 					GeometryB : ['Plane', 'Sphere', 'Solid Sphere', 'Text']
 				};
@@ -462,7 +473,7 @@
 				f1.add( params, "opacity", 0.0, 1.0 ).listen();
 				f1.add( params, "saturation", 0.0, 1.0 ).listen();
 				var f2 = gui.addFolder('Noise');
-				f2.add( params, "time", -2.0, 4.0 ).listen();
+				f2.add( params, "time", -2.0, 8.0 ).listen();
 				var f3 = gui.addFolder('Geometry');
 				if( window.mobileAndTabletCheck() ) {
 					params['detail'] = 20;
@@ -471,18 +482,18 @@
 					f2.add( params, "sensitivity", 0.2, 10.0 );
 					f2.add( params, "amplitude", 1.0, 500.0 );
 					f2.add( params, "noiseIterations", 1.0, 6.0 );
-					detail = f3.add( params, "detail", 1, 1000 );
+					detail = f3.add( params, "detail", 1, 300 );
 				} else {
 					f2.add( params, "sensitivity", 0.2, 10.0 );
 					f2.add( params, "amplitude", 1.0, 500.0 );
 					f2.add( params, "noiseIterations", 1.0, 8.0 );
-					detail = f3.add( params, "detail", 1, 1000 );
+					detail = f3.add( params, "detail", 1, 300 );
 				}
 				f2.add( params, "sinScale", 0.0001, 0.8 );
 				f2.add( params, "scale", 0.01, 0.6 );
 				f2.add( params, "abMix", 0.0, 1.0 ).listen();
 				f2.add( params, "highFrequencyMix", 0.01, 1.0 ).listen();
-				sizeCallBack = f3.add( params, "size", 1, 30000 ).listen();
+				sizeCallBack = f3.add( params, "size", 1, 3000 ).listen();
 				
 				pointSize = f3.add( params, "pointSize", 1, 20 );
 				drawStyle = f3.add( params, "style", params.style).listen();
@@ -501,38 +512,54 @@
 
 			function initKeyFrames(keyFrames) {
 
+				
+
 				var keyFrame = new KeyFrame({
-					size: 8000
+					abMix: 0.0,
+					highFrequencyMix : 0.8,
+					amplitude : 100,
+					time : -2.0, 
+					sinScale : 0.07
 				}, function() {
-					sizeCallBack.setValue(params.size);
-				}, TWEEN.Easing.Quadratic.Out, 8000, 1);
+					// alert('updating');
+				}, TWEEN.Easing.Quadratic.Out, 6000, 8.2);
+				keyFrames.push(keyFrame);
+
+				keyFrame = new KeyFrame({}, function() {
+					asyncUpdateGeometry("B", "Plane");
+					bSelectedGeometry = "Plane";
+				}, null, null, 14.3);
+				keyFrames.push(keyFrame);
+
+				keyFrame = new KeyFrame({abMix: 0.7, time: 4.0}, function() {}, TWEEN.Easing.Quadratic.Out, 1000, 15.4);
 				keyFrames.push(keyFrame);
 
 				keyFrame = new KeyFrame({
-					abMix: 1.0,
-					highFrequencyMix : 0.99
+					style: "Line"
 				}, function() {
-					// alert('updating');
-				}, TWEEN.Easing.Quadratic.Out, 3000, 16.2);
+					updateGeomAndDrawStyle("Line");
+				}, null, null, 16.5);
 				keyFrames.push(keyFrame);
 
 				
 
-				keyFrame = new KeyFrame({
-					style: "Mesh"
-				}, function() {
-					updateGeomAndDrawStyle("Mesh");
-				}, null, null, 22);
-				keyFrames.push(keyFrame);
+				// keyFrame = new KeyFrame({time: -2.0}, function() {}, TWEEN.Easing.Quadratic.Out, 1000, 30);
+				// keyFrames.push(keyFrame);
 
-				keyFrame = new KeyFrame({}, function() {
-					asyncUpdateGeometry("A", "Solid Sphere");
-					aSelectedGeometry = "Solid Sphere";
-				}, null, null, 24);
-				keyFrames.push(keyFrame);
+				// keyFrame = new KeyFrame({time: 3.5}, function() {}, TWEEN.Easing.Quadratic.Out, 1000, 35);
+				// keyFrames.push(keyFrame);																		
 
-				keyFrame = new KeyFrame({abMix: 0.0}, function() {}, TWEEN.Easing.Quadratic.Out, 10000, 30);
-				keyFrames.push(keyFrame);
+				// keyFrame = new KeyFrame({abMix: 0.0}, function() {}, TWEEN.Easing.Quadratic.Out, 10000, 40);
+				// keyFrames.push(keyFrame);
+
+				// var keyFrame = new KeyFrame({
+				// 	size: 3400
+				// }, function() {
+				// 	sizeCallBack.setValue(params.size);
+				// }, TWEEN.Easing.Quadratic.Out, 1, 1);
+				// keyFrames.push(keyFrame);
+
+
 
 				// keyFrame = new KeyFrame({
 				// 	size: 1000,
@@ -541,9 +568,6 @@
 				// }, TWEEN.Easing.Quadratic.Out, 3000, 35);
 				// keyFrames.push(keyFrame);
 
-
-
-				console.log(keyFrames);
 
 			}
 
@@ -559,37 +583,111 @@
 				geo.addAttribute('normal', geom.attributes.normal);
 				geo.computeBoundingSphere();
 
-				var count;
+				var newGeomCount = geo.getAttribute("position").count * 3;
+				var existingGeomCount;
+
 				if (geomToUpdate === "A") {
-					count = noiseGeometry.getAttribute( "position" ).count * 3;
+					existingGeomCount = noiseGeometry.getAttribute( "positionB" ).count * 3;
+					var maxCount = Math.max(existingGeomCount, newGeomCount);
 					noiseGeometry.removeAttribute( "position" );
 					noiseGeometry.removeAttribute( "normal" );
+					var buffPA = new Float32Array( maxCount );
+					var pArr = geo.getAttribute("position").array;
+					for(var i = 0; i < newGeomCount; i++) {
+						buffPA[i] = pArr[i];
+					}
+					noiseGeometry.addAttribute( "position", new THREE.BufferAttribute( buffPA, 3));
+
+					var buffNA = new Float32Array( maxCount );
+					var nArr = geo.getAttribute("normal").array;
+					for(var i = 0; i < newGeomCount; i++) {
+						buffNA[i] = nArr[i];
+					}
+					noiseGeometry.addAttribute( "normal", new THREE.BufferAttribute( buffNA, 3));
+
+					if(existingGeomCount < newGeomCount) {
+						var buffPB = new Float32Array( maxCount );
+						var pBrr = noiseGeometry.getAttribute("positionB").array;
+						for(var i = 0; i < newGeomCount; i++) {
+							buffPB[i] = pBrr[i];
+						}
+						var buffNB = new Float32Array( maxCount );
+						var nBrr = noiseGeometry.getAttribute("normalB").array;
+						for(var i = 0; i < newGeomCount; i++) {
+							buffNB[i] = nBrr[i];
+						}
+						noiseGeometry.removeAttribute( "positionB" );
+						noiseGeometry.removeAttribute( "normalB" );
+						noiseGeometry.addAttribute( "positionB", new THREE.BufferAttribute( buffPB, 3));
+						noiseGeometry.addAttribute( "normalB", new THREE.BufferAttribute( buffNB, 3));
+					}
+					
 				} else {
-					count = noiseGeometry.getAttribute( "positionB" ).count * 3;
+					existingGeomCount = noiseGeometry.getAttribute( "position" ).count * 3;
+					var maxCount = Math.max(existingGeomCount, newGeomCount);
 					noiseGeometry.removeAttribute( "positionB" );
 					noiseGeometry.removeAttribute( "normalB" );
+					var buffPB = new Float32Array( maxCount );
+					var pBrr = geo.getAttribute("position").array;
+					for(var i = 0; i < newGeomCount; i++) {
+						buffPB[i] = pBrr[i];
+					}
+					noiseGeometry.addAttribute( "positionB", new THREE.BufferAttribute( buffPB, 3));
+
+					var buffNB = new Float32Array( maxCount );
+					var nBrr = geo.getAttribute("normal").array;
+					for(var i = 0; i < newGeomCount; i++) {
+						buffNB[i] = nBrr[i];
+					}
+					noiseGeometry.addAttribute( "normal", new THREE.BufferAttribute( buffNB, 3));
+
+					if(existingGeomCount < newGeomCount) {
+						var buffPA = new Float32Array( maxCount );
+						var pArr = noiseGeometry.getAttribute("position").array;
+						for(var i = 0; i < newGeomCount; i++) {
+							buffPA[i] = pArr[i];
+						}
+						var buffNA = new Float32Array( maxCount );
+						var nArr = noiseGeometry.getAttribute("normal").array;
+						for(var i = 0; i < newGeomCount; i++) {
+							buffNA[i] = nArr[i];
+						}
+						noiseGeometry.removeAttribute( "position" );
+						noiseGeometry.removeAttribute( "normal" );
+						noiseGeometry.addAttribute( "position", new THREE.BufferAttribute( buffPA, 3));
+						noiseGeometry.addAttribute( "normal", new THREE.BufferAttribute( buffNA, 3));
+					}
+
 				}
 
-				var newP = new Float32Array( count );
-				var pArr = geo.getAttribute("position").array;
-				var newCount = Math.min( geo.getAttribute("position").count * 3, count);
-				for (var i = 0; i < count; i++ ) {
-					newP[i] = pArr[i];
-				}
-				var newN = new Float32Array( count );
-				var nArr = geo.getAttribute("normal").array;
-				newCount = Math.min( geo.getAttribute("normal").count * 3, count);
-				for (var i = 0; i < count; i++ ) {
-					newN[i] = nArr[i];
-				}
 
-				if (geomToUpdate === "A") {
-					noiseGeometry.addAttribute( "position", new THREE.BufferAttribute( newP, 3));
-			 		noiseGeometry.addAttribute( "normal", new THREE.BufferAttribute( newN, 3));
-				} else {
-					noiseGeometry.addAttribute( "positionB", new THREE.BufferAttribute( newP, 3));
-			 		noiseGeometry.addAttribute( "normalB", new THREE.BufferAttribute( newN, 3));	
-				}
+				// var newP = new Float32Array( count );
+				// var pArr = geo.getAttribute("position").array;
+				// var countMin = Math.min( geo.getAttribute("position").count * 3, count);
+				// var countMax = Math.max( geo.getAttribute("position").count * 3, count);
+				// for (var i = 0; i < countMin; i++ ) {
+				// 	newP[i] = pArr[i];
+				// }
+				// for (var i = countMin; i < countMax; i++ ) {
+				// 	newP[i] = 0;
+				// }
+				// var newN = new Float32Array( count );
+				// var nArr = geo.getAttribute("normal").array;
+				// countMin = Math.min( geo.getAttribute("normal").count * 3, count);
+				// countMax = Math.max( geo.getAttribute("normal").count * 3, count);
+				// for (var i = 0; i < countMin; i++ ) {
+				// 	newN[i] = nArr[i];
+				// }
+				// for (var i = countMin; i < countMax; i++ ) {
+				// 	newN[i] = 0;
+				// }
+				// if (geomToUpdate === "A") {
+				// 	noiseGeometry.addAttribute( "position", new THREE.BufferAttribute( newP, 3));
+			 // 		noiseGeometry.addAttribute( "normal", new THREE.BufferAttribute( newN, 3));
+				// } else {
+				// 	noiseGeometry.addAttribute( "positionB", new THREE.BufferAttribute( newP, 3));
+			 // 		noiseGeometry.addAttribute( "normalB", new THREE.BufferAttribute( newN, 3));	
+				// }
  				
 				noiseShape.geometry.needsUpdate = true;
 			}
@@ -627,6 +725,7 @@
 				scene.remove(noiseShape);
 				if(drawStyle == "Points") {
 					noiseShape = new THREE.Points( noiseGeometry, material );
+					noiseShape.lights = true;
 				} else if(drawStyle == "Line") {
 					noiseShape = new THREE.LineSegments( noiseGeometry, material );
 				} else {
@@ -767,6 +866,7 @@
 				objUniforms.mouse.value = mouse;
 				objUniforms.lightColor.value = new THREE.Vector4(color.r, color.g, color.b, color.a);
 
+				console.log(camera.position);
 				renderer.render( scene, camera );
 
 			}
