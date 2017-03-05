@@ -501,7 +501,7 @@
 					time : -2.0, 
 					sinScale : 0.07
 				}, function() {
-				}, TWEEN.Easing.Quadratic.Out, 6000, 7.7);
+				}, TWEEN.Easing.Quadratic.Out, 7000, 7.7);
 				keyFrames.push(keyFrame);
 
 				keyFrame = new KeyFrame({}, function() {
@@ -531,9 +531,9 @@
 
 				var keyFrame = new KeyFrame({camZ: 3000,
 											abMix: 0.0}, 
-											function() {updatingCamera = true;}, 
+											function() { updatingCamera = true; }, 
 											TWEEN.Easing.Quadratic.InOut, 10000, 33.0, 
-											function(){updatingCamera = false;});
+											function(){ updatingCamera = false; });
 				keyFrames.push(keyFrame);
 
 				keyFrame = new KeyFrame({}, function() {
@@ -544,6 +544,50 @@
 
 				keyFrame = new KeyFrame({abMix: 1.0, sensitivity : 2.0}, function() {}, TWEEN.Easing.Quadratic.InOut, 3000, 45.6);
 				keyFrames.push(keyFrame);
+
+				keyFrame = new KeyFrame({pointLightIntensity: 0.1}, function() {}, TWEEN.Easing.Quadratic.InOut, 2000, 49.0);
+				keyFrames.push(keyFrame);
+
+				keyFrame = new KeyFrame({camZ: 500}, function() { updatingCamera = true; }, 
+											TWEEN.Easing.Quadratic.InOut, 5000, 50.0, 
+											function(){ updatingCamera = false; });
+				keyFrames.push(keyFrame);
+
+				keyFrame = new KeyFrame({camY: -650}, function() { updatingCamera = true; }, 
+											TWEEN.Easing.Quadratic.InOut, 5000, 55.0, 
+											function(){ updatingCamera = false; });
+				keyFrames.push(keyFrame);				
+
+				keyFrame = new KeyFrame({}, function() {
+					asyncUpdateGeometry("A", "Solid Sphere");
+					aSelectedGeometry = "Solid Sphere";
+				}, null, null, 56.2);
+				keyFrames.push(keyFrame);
+
+				keyFrame = new KeyFrame({
+					style: "Mesh"
+				}, function() {
+					updateGeomAndDrawStyle("Mesh");
+				}, null, null, 62);
+				keyFrames.push(keyFrame);
+
+				keyFrame = new KeyFrame({pointLightIntensity: 0.0}, function() {}, TWEEN.Easing.Quadratic.InOut, 10, 63.0);
+				keyFrames.push(keyFrame);			
+
+				keyFrame = new KeyFrame({abMix: 0.99, amplitude : 300, time: -3.0}, function() {}, TWEEN.Easing.Quadratic.InOut, 3000, 69.0);
+				keyFrames.push(keyFrame);
+
+				keyFrame = new KeyFrame({
+					style: "Points"
+				}, function() {
+					updateGeomAndDrawStyle("Points");
+				}, null, null, 75.0);
+				keyFrames.push(keyFrame);
+
+				keyFrame = new KeyFrame({abMix: 0.0, amplitude : 400, sensitivity : 0.8, highFrequencyMix : 0.6}, function() {}, TWEEN.Easing.Quadratic.InOut, 3000, 69.0);
+				keyFrames.push(keyFrame);
+
+
 
 
 			}
