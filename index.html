@@ -240,24 +240,15 @@
 			playButton.addEventListener( 'click', playPressed, false );
 
 			function playPressed(event) {
+				document.getElementById("progressBar").style.visibility = "visible";
 				playButton.style.display = 'none'; 
 				loader.load( 'fonts/SharpSansNo1Medium_Regular.json', function ( loadedFont ) {
 					font = loadedFont;
-					//Initializes the noiseShape with aSelectedGeometry and bSelectedGeometry.
-					aSelectedGeometry = "Solid Sphere";
-					bSelectedGeometry = "Text";
-					
-					params.style = "Mesh";
-					params.GeometryA = aSelectedGeometry;
-					params.GeometryB = bSelectedGeometry;
-					updateGeomAndDrawStyle("Mesh");
+					init();
+					gui.closed = true;
+					animate();	
 				} );	
-				init();
-				gui.closed = true;
-				animate();		
 			}
-
-			
 
 			function init() {
 
@@ -387,7 +378,7 @@
 
 				//Initializes the noiseShape with aSelectedGeometry and bSelectedGeometry.
 				aSelectedGeometry = "Solid Sphere";
-				bSelectedGeometry = "Plane";
+				bSelectedGeometry = "Text";
 				
 				params.style = "Mesh";
 				params.GeometryA = aSelectedGeometry;
@@ -443,7 +434,7 @@
 					sinScale : 0.01,
 					volume : 0.5,
 					colorContour : 1.3, 
-					opacity : 1.0,
+					opacity : 0.0,
 					saturation : 1.0,
 					style : ['Points', 'Line', 'Mesh'],
 					text : "FILAMENT",
@@ -498,8 +489,10 @@
 			}
 
 			function initKeyFrames(keyFrames) {
+				var keyFrame = new KeyFrame({opacity: 1.0}, function() {}, TWEEN.Easing.Quadratic.InOut, 4000, 0.0);
+				keyFrames.push(keyFrame);
 
-				var keyFrame = new KeyFrame({sinScale: 0.02}, function() {}, TWEEN.Easing.Quadratic.Out, 80, 7.0);
+				keyFrame = new KeyFrame({sinScale: 0.02}, function() {}, TWEEN.Easing.Quadratic.Out, 80, 7.0);
 				keyFrames.push(keyFrame);
 				keyFrame = new KeyFrame({
 					abMix: 0.0,
@@ -542,8 +535,6 @@
 											TWEEN.Easing.Quadratic.InOut, 10000, 33.0, 
 											function(){updatingCamera = false;});
 				keyFrames.push(keyFrame);
-
-			
 
 				keyFrame = new KeyFrame({}, function() {
 					asyncUpdateGeometry("B", "Sphere");
