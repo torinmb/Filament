@@ -236,14 +236,11 @@
 			var keyFrames, tween;
 			var updatingCamera = false;
 
-			var playButton = document.getElementById("playButton")
+			var playButton = document.getElementById("playButton");
 			playButton.addEventListener( 'click', playPressed, false );
-			var progressBar = document.getElementById("progressBar");
-			progressBar.style.visibility = 'hidden'; 
 
 			function playPressed(event) {
-				progressBar.style.visibility = 'visible'; 
-				playButton.style.visibility = 'hidden'; 
+				playButton.style.display = 'none'; 
 				loader.load( 'fonts/SharpSansNo1Medium_Regular.json', function ( loadedFont ) {
 					font = loadedFont;
 					//Initializes the noiseShape with aSelectedGeometry and bSelectedGeometry.
@@ -301,13 +298,14 @@
 					sound.autoplay = true;
 					sound.startTimer = new Date().getTime() / 1000 - sound.startTime;
 					params.playAudio = true;
+					var progressBar = document.getElementById("progressBar"); 
 					progressBar.style.display = 'none'; 
 		        },
 				function ( xhr ) {
 					var percent = xhr.loaded / xhr.total * 100;
 					console.log( percent + '% loaded' );
 				    var elem = document.getElementById("bar"); 
-				    progressBar.style.width = percent + '%'; 
+				    elem.style.width = percent + '%'; 
 				},
 				function ( xhr ) {
 					console.log( 'Error loading audio' );

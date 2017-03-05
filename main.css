@@ -33,6 +33,7 @@ a {
 #progressBar {
 	width: 80%;
 	background-color: grey;
+	visibility : hidden;
 }
 
 
