@@ -170,7 +170,7 @@
 	        //p.z += 20000.0 / (1.0+dist);
 
 			gl_Position = projectionMatrix * modelViewMatrix * vec4( p, 1.0 );
-			gl_PointSize = 1.0;//min(pointSize * (audio[2] * audio[4] + audio[5] + audio[6] * audio[7] * 3.0)  * 0.0001, 2.0);
+			gl_PointSize = min((audio[2] * audio[4] + audio[5] + audio[6] * audio[7] * 3.0)  * 0.0001, 2.0);
 
 		}
 
@@ -434,6 +434,7 @@
 					colorContour : 1.3, 
 					opacity : 0.0,
 					saturation : 1.0,
+					lightness : 0.65,
 					style : ['Points', 'Line', 'Mesh'],
 					text : "FILAMENT",
 					GeometryA : ['Plane', 'Sphere', 'Solid Sphere', 'Text'],
@@ -448,6 +449,7 @@
 				f1.add( params, "colorContour", 0.1, 20.0 ).listen();
 				f1.add( params, "opacity", 0.0, 1.0 ).listen();
 				f1.add( params, "saturation", 0.0, 1.0 ).listen();
+				f1.add( params, "lightness", 0.0, 1.0 ).listen();
 				var f2 = gui.addFolder('Noise');
 				f2.add( params, "time", -4.0, 8.0 ).listen();
 				var f3 = gui.addFolder('Geometry');
@@ -467,14 +469,16 @@
 				}
 				f2.add( params, "sinScale", 0.0001, 1.8 ).listen();
 				f2.add( params, "scale", 0.01, 0.6 );
-				f2.add( params, "abMix", 0.0, 1.0 ).listen();
+				
 				f2.add( params, "highFrequencyMix", 0.01, 1.0 ).listen();
 				sizeCallBack = f3.add( params, "size", 1, 3000 ).listen();
 				
 				triangleSize = f3.add( params, "triangleSize", 1, 32 ).listen();
 				drawStyle = f3.add( params, "style", params.style).listen();
+
 				GeometryA = f3.add( params, "GeometryA", params.GeometryA).listen();
 				GeometryB = f3.add( params, "GeometryB", params.GeometryB).listen();
+				f3.add( params, "abMix", 0.0, 1.0 ).listen();
 				f3.add( params, "text", params.text );
 				var f4 = gui.addFolder('Audio');
 				f4.add( params, "audioSmoothing", 0.0, 0.9).listen();
@@ -521,7 +525,7 @@
 				keyFrame = new KeyFrame({sinScale: 0.9, amplitude : 450}, function() {}, TWEEN.Easing.Quadratic.Out, 100, 19.55);
 				keyFrames.push(keyFrame);
 
-				keyFrame = new KeyFrame({time: -4.0}, function() {}, TWEEN.Easing.Quadratic.Out, 1000, 27);
+				keyFrame = new KeyFrame({time: -4.0, abMix: 1.0}, function() {}, TWEEN.Easing.Quadratic.Out, 1000, 27);
 				keyFrames.push(keyFrame);
 
 				keyFrame = new KeyFrame({time: 2.0}, function() {}, TWEEN.Easing.Quadratic.Out, 1000, 30);
@@ -547,12 +551,12 @@
 				keyFrame = new KeyFrame({pointLightIntensity: 0.2}, function() {}, TWEEN.Easing.Quadratic.InOut, 2000, 49.0);
 				keyFrames.push(keyFrame);
 
-				keyFrame = new KeyFrame({camZ: 450}, function() { updatingCamera = true; }, 
+				keyFrame = new KeyFrame({camZ: 400}, function() { updatingCamera = true; }, 
 											TWEEN.Easing.Quadratic.InOut, 5000, 50.0, 
 											function(){ updatingCamera = false; });
 				keyFrames.push(keyFrame);
 
-				keyFrame = new KeyFrame({camY: -650}, function() { updatingCamera = true; }, 
+				keyFrame = new KeyFrame({camY: -550}, function() { updatingCamera = true; }, 
 											TWEEN.Easing.Quadratic.InOut, 5000, 55.0, 
 											function(){ updatingCamera = false; });
 				keyFrames.push(keyFrame);				
@@ -856,7 +860,7 @@
 				}
 
 				var hsl = color.getHSL();
-				color.setHSL(hsl.h, params.saturation, hsl.l);
+				color.setHSL(hsl.h, params.saturation, params.lightness);
 				if(updatingCamera) {
 					camera.position.set(params.camX, params.camY, params.camZ);
 				}
