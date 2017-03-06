@@ -24,9 +24,6 @@
 
 		<div id="container"></div>
 		<!-- <div id="info"><a href="http://uwc.graphics" target="_blank">CGPP</a> FBM Triangle Shredder</div> -->
-		<div id="playButton" class="floatCenter">
-			<img src="Play@2x.png"/>
-		</div>
 		<div id="progressBar" class="floatCenter">
 		  <div id="bar"></div>
 		</div>
@@ -234,21 +231,17 @@
 			var keyFrames, tween;
 			var updatingCamera = false;
 
-			var playButton = document.getElementById("playButton");
-			playButton.addEventListener( 'click', playPressed, false );
+
+			
+
+			document.getElementById("progressBar").style.visibility = "visible";
 			initGui();
 			gui.closed = true;
-
-			function playPressed(event) {
-				document.getElementById("progressBar").style.visibility = "visible";
-				playButton.style.display = 'none'; 
-				loader.load( 'fonts/SharpSansNo1Medium_Regular.json', function ( loadedFont ) {
-					font = loadedFont;
-					init();
-					
-					animate();
-				} );				
-			}
+			loader.load( 'fonts/SharpSansNo1Medium_Regular.json', function ( loadedFont ) {
+				font = loadedFont;
+				init();
+				animate();
+			} );				
 
 			function init() {
 
