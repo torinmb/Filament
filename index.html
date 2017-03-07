@@ -863,6 +863,10 @@
 				color.setHSL(hsl.h, params.saturation, params.lightness);
 				if(updatingCamera) {
 					camera.position.set(params.camX, params.camY, params.camZ);
+				} else {
+					params.camX = camera.position.x;
+					params.camY = camera.position.y;
+					params.camZ = camera.position.z;
 				}
 
 				var objUniforms = noiseShape.material.uniforms;
