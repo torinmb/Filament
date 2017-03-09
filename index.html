@@ -167,7 +167,7 @@
 	        //p.z += 20000.0 / (1.0+dist);
 
 			gl_Position = projectionMatrix * modelViewMatrix * vec4( p, 1.0 );
-			gl_PointSize = max(min((audio[2] * audio[4] + audio[5] + audio[6] * audio[7] * 3.0)  * 0.0001, 10.0), 1.0);
+			gl_PointSize = max(min((audio[2] * audio[4] + audio[5] + audio[6] * audio[7] * 3.0)  * 0.001, 10.0), 1.0);
 
 		}
 
@@ -203,13 +203,12 @@
 				// color.r += sin( vPosition.x * 10.0 + time ) * 0.5;
 				color.a = opacity;
 				if(isPoints == 1.0) {
-					float alpha = opacity / ( pow(5.0*distance(vec2(0.5,0.5), gl_PointCoord ), 1.0));
-				    vec4 tex = vec4(1.0,1.0,1.0,1.0);//texture2D( texture, gl_PointCoord);
-				    gl_FragColor = alpha * vec4( tex.r* color.r, tex.g * color.g, tex.b * color.b, alpha * 0.25 );
-				    if ( gl_FragColor.a < 0.05 ) discard;
+					float alpha = opacity * smoothstep(0.5, 0.0, distance(gl_PointCoord, vec2(0.5)));
+				    gl_FragColor = alpha * color;
+				    if ( gl_FragColor.a < 0.5 ) discard;
+				} else {
+					gl_FragColor = color;
 				}
-				
-				gl_FragColor = vec4( color );
 				
 			}		
 
@@ -374,11 +373,12 @@
 						triangleSize : { value: params.triangleSize },
 						highFrequencyMix : {value : params.highFrequencyMix },
 						mouse : {value : mouse }
-
 					},
 					vertexShader: document.getElementById( 'vertexShader' ).textContent,
 					fragmentShader: document.getElementById( 'fragmentShader' ).textContent,
 					side: THREE.DoubleSide,
+					alphaTest: 0.9,
+					depthTest: false,
 					transparent: true
 				} );
 
@@ -429,7 +429,7 @@
 					time : 0.2,
 					noiseIterations : 8.0,
 					highFrequencyMix : 1.0,
-					audioSmoothing: 0.94,
+					audioSmoothing: 0.8,
 					size : 2000,
 					detail : 200,
 					triangleSize : 30.0,
@@ -867,7 +867,7 @@
 										//freshAudio[i + 2] +
 										//freshAudio[i + 3]) / 4.0;
 					//audio smoothing
-					audioArray[index] = smoothA * averagedAudio + smoothB * freshAudio[index]; 
+					audioArray[index] = smoothB * averagedAudio + smoothA * audioArray[index]; 
 					index +=1;
 				}
 
