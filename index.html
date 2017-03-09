@@ -167,7 +167,7 @@
 	        //p.z += 20000.0 / (1.0+dist);
 
 			gl_Position = projectionMatrix * modelViewMatrix * vec4( p, 1.0 );
-			gl_PointSize = min((audio[2] * audio[4] + audio[5] + audio[6] * audio[7] * 3.0)  * 0.0001, 2.0);
+			gl_PointSize = max(min((audio[2] * audio[4] + audio[5] + audio[6] * audio[7] * 3.0)  * 0.0001, 10.0), 1.0);
 
 		}
 
@@ -184,6 +184,7 @@
 			uniform float colorContour;
 			uniform float opacity;
 			uniform float audio[16];
+			uniform float isPoints;
 
 			varying vec3 vNormal;
 			varying vec4 vColor;
@@ -194,16 +195,23 @@
 				vec4 color = lightColor;//vec4( vColor );
         		color *= dot(normalize(vNormal),lightDir);
 
-        		float audioColor = colorContour * (audio[4] + audio[5] + audio[6] * audio[7] * 3.0)  * 0.0001;
-        		// color = color * audioColor;
+        		float audioColor = (audio[0] + audio[1] + audio[2] + audio[3] + audio[4]) * 0.001 + (audio[5] + audio[6] + audio[7])  * 0.0001;
+        		color = color * audioColor;
         		// if (audioColor > 1.0) {
 		    	 // color = 0.5 * sin(color * audioColor) + 0.5;
 	        	// }
 				// color.r += sin( vPosition.x * 10.0 + time ) * 0.5;
 				color.a = opacity;
+				if(isPoints == 1.0) {
+					float alpha = opacity / ( pow(5.0*distance(vec2(0.5,0.5), gl_PointCoord ), 1.0));
+				    vec4 tex = vec4(1.0,1.0,1.0,1.0);//texture2D( texture, gl_PointCoord);
+				    gl_FragColor = alpha * vec4( tex.r* color.r, tex.g * color.g, tex.b * color.b, alpha * 0.25 );
+				    if ( gl_FragColor.a < 0.05 ) discard;
+				}
+				
 				gl_FragColor = vec4( color );
 				
-			}
+			}		
 
 		</script>
 
@@ -362,6 +370,7 @@
 						abMix : { value : params.abMix },
 						colorContour : { value: params.colorContour },
 						opacity : { value: params.opacity },
+						isPoints : { value: params.isPoints },
 						triangleSize : { value: params.triangleSize },
 						highFrequencyMix : {value : params.highFrequencyMix },
 						mouse : {value : mouse }
@@ -432,6 +441,7 @@
 					volume : 0.5,
 					colorContour : 1.3, 
 					opacity : 0.0,
+					isPoints : 0.0,
 					saturation : 1.0,
 					lightness : 0.65,
 					style : ['Points', 'Line', 'Mesh'],
@@ -481,7 +491,7 @@
 				f3.add( params, "abMix", 0.0, 1.0 ).listen();
 				f3.add( params, "text", params.text );
 				var f4 = gui.addFolder('Audio');
-				f4.add( params, "audioSmoothing", 0.0, 0.9).listen();
+				f4.add( params, "audioSmoothing", 0.0, 1.0).listen();
 				volume = f4.add( params, "volume", 0.0, 0.5).listen();
 				playAudio = f4.add( params, "playAudio").listen();
 				useMicrophone = f4.add( params, "useMicrophone").listen();
@@ -576,10 +586,10 @@
 					updateGeomAndDrawStyle("Mesh");
 				}, null, null, 62);
 				keyFrames.push(keyFrame);
-				keyFrame = new KeyFrame({time: 2.5, sinScale :0.85 }, function() {}, TWEEN.Easing.Quadratic.InOut, 3000, 65.9);
+				keyFrame = new KeyFrame({time: 2.5, sinScale :0.85, amplitude : 300}, function() {}, TWEEN.Easing.Quadratic.InOut, 3000, 65.9);
 				keyFrames.push(keyFrame);
 				
-				keyFrame = new KeyFrame({abMix: 0.999, amplitude : 300, time: -2.5}, function() {}, TWEEN.Easing.Quadratic.InOut, 1000, 73.84);
+				keyFrame = new KeyFrame({abMix: 0.999, time: -2.5}, function() {}, TWEEN.Easing.Quadratic.InOut, 1000, 73.84);
 				keyFrames.push(keyFrame);
 				// keyFrame = new KeyFrame({abMix: 0.999, amplitude : 300, time: -2.5}, function() {}, TWEEN.Easing.Quadratic.InOut, 3000, 69.0);
 				// keyFrames.push(keyFrame);
@@ -732,7 +742,9 @@
 				asyncUpdateGeometry("A", aSelectedGeometry);
 				asyncUpdateGeometry("B", bSelectedGeometry);
 				scene.remove(noiseShape);
+				params.isPoints = 0.0;
 				if(drawStyle == "Points") {
+					params.isPoints = 1.0;
 					noiseShape = new THREE.Points( noiseGeometry, material );
 					noiseShape.lights = true;
 				} else if(drawStyle == "Line") {
@@ -883,6 +895,7 @@
 				objUniforms.triangleSize.value = params.triangleSize;
 				objUniforms.highFrequencyMix.value = params.highFrequencyMix;
 				objUniforms.mouse.value = mouse;
+				objUniforms.isPoints.value = params.isPoints;
 				objUniforms.lightColor.value = new THREE.Vector4(color.r, color.g, color.b, color.a);
 
 				renderer.render( scene, camera );
