@@ -429,7 +429,7 @@
 					time : 0.2,
 					noiseIterations : 8.0,
 					highFrequencyMix : 1.0,
-					audioSmoothing: 0.8,
+					audioSmoothing: 0.7,
 					size : 2000,
 					detail : 200,
 					triangleSize : 30.0,
@@ -535,7 +535,7 @@
 				keyFrame = new KeyFrame({sinScale: 0.9, amplitude : 450}, function() {}, TWEEN.Easing.Quadratic.Out, 100, 19.55);
 				keyFrames.push(keyFrame);
 
-				keyFrame = new KeyFrame({time: -4.0, abMix: 1.0}, function() {}, TWEEN.Easing.Quadratic.Out, 1000, 27);
+				keyFrame = new KeyFrame({time: -4.0, abMix: 1.0, sensitivity: 1.1}, function() {}, TWEEN.Easing.Quadratic.Out, 1000, 27);
 				keyFrames.push(keyFrame);
 
 				keyFrame = new KeyFrame({time: 2.0}, function() {}, TWEEN.Easing.Quadratic.Out, 1000, 30);
@@ -555,11 +555,11 @@
 				}, null, null, 40);
 				keyFrames.push(keyFrame);		
 
-				keyFrame = new KeyFrame({abMix: 1.0, sensitivity : 2.0}, function() {}, TWEEN.Easing.Quadratic.InOut, 3000, 45.6);
+				keyFrame = new KeyFrame({abMix: 1.0, sensitivity : 2.0, pointLightIntensity: 0.2}, function() {}, TWEEN.Easing.Quadratic.InOut, 3000, 45.6);
 				keyFrames.push(keyFrame);
 
-				keyFrame = new KeyFrame({pointLightIntensity: 0.2}, function() {}, TWEEN.Easing.Quadratic.InOut, 2000, 49.0);
-				keyFrames.push(keyFrame);
+				// keyFrame = new KeyFrame({}, function() {}, TWEEN.Easing.Quadratic.InOut, 2000, 49.0);
+				// keyFrames.push(keyFrame);
 
 				keyFrame = new KeyFrame({camZ: 400}, function() { updatingCamera = true; }, 
 											TWEEN.Easing.Quadratic.InOut, 5000, 50.0, 
